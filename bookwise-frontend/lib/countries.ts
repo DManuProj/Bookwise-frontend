@@ -1,0 +1,255 @@
+export type Country = {
+  name: string;
+  code: string;
+  currency: string; // currency code only e.g. "USD"
+  timezone: string;
+};
+
+export type Currency = {
+  code: string;
+  symbol: string;
+  name: string;
+};
+
+/* ── Currencies ── */
+export const CURRENCIES: Currency[] = [
+  { code: "USD", symbol: "$", name: "US Dollar" },
+  { code: "EUR", symbol: "€", name: "Euro" },
+  { code: "GBP", symbol: "£", name: "British Pound" },
+  { code: "LKR", symbol: "Rs", name: "Sri Lankan Rupee" },
+  { code: "INR", symbol: "₹", name: "Indian Rupee" },
+  { code: "AUD", symbol: "A$", name: "Australian Dollar" },
+  { code: "CAD", symbol: "C$", name: "Canadian Dollar" },
+  { code: "SGD", symbol: "S$", name: "Singapore Dollar" },
+  { code: "AED", symbol: "د.إ", name: "UAE Dirham" },
+  { code: "SAR", symbol: "ر.س", name: "Saudi Riyal" },
+  { code: "MYR", symbol: "RM", name: "Malaysian Ringgit" },
+  { code: "JPY", symbol: "¥", name: "Japanese Yen" },
+  { code: "CNY", symbol: "¥", name: "Chinese Yuan" },
+  { code: "KRW", symbol: "₩", name: "South Korean Won" },
+  { code: "BDT", symbol: "৳", name: "Bangladeshi Taka" },
+  { code: "PKR", symbol: "₨", name: "Pakistani Rupee" },
+  { code: "NGN", symbol: "₦", name: "Nigerian Naira" },
+  { code: "ZAR", symbol: "R", name: "South African Rand" },
+  { code: "BRL", symbol: "R$", name: "Brazilian Real" },
+  { code: "MXN", symbol: "$", name: "Mexican Peso" },
+  { code: "CHF", symbol: "Fr", name: "Swiss Franc" },
+  { code: "SEK", symbol: "kr", name: "Swedish Krona" },
+  { code: "NOK", symbol: "kr", name: "Norwegian Krone" },
+  { code: "DKK", symbol: "kr", name: "Danish Krone" },
+  { code: "NZD", symbol: "NZ$", name: "New Zealand Dollar" },
+  { code: "HKD", symbol: "HK$", name: "Hong Kong Dollar" },
+  { code: "THB", symbol: "฿", name: "Thai Baht" },
+  { code: "IDR", symbol: "Rp", name: "Indonesian Rupiah" },
+  { code: "PHP", symbol: "₱", name: "Philippine Peso" },
+  { code: "VND", symbol: "₫", name: "Vietnamese Dong" },
+  { code: "EGP", symbol: "£", name: "Egyptian Pound" },
+  { code: "KWD", symbol: "د.ك", name: "Kuwaiti Dinar" },
+  { code: "QAR", symbol: "ر.ق", name: "Qatari Riyal" },
+  { code: "TRY", symbol: "₺", name: "Turkish Lira" },
+  { code: "ILS", symbol: "₪", name: "Israeli Shekel" },
+  { code: "PLN", symbol: "zł", name: "Polish Zloty" },
+  { code: "CZK", symbol: "Kč", name: "Czech Koruna" },
+  { code: "HUF", symbol: "Ft", name: "Hungarian Forint" },
+  { code: "RON", symbol: "lei", name: "Romanian Leu" },
+  { code: "UAH", symbol: "₴", name: "Ukrainian Hryvnia" },
+  { code: "GHS", symbol: "₵", name: "Ghanaian Cedi" },
+  { code: "KES", symbol: "KSh", name: "Kenyan Shilling" },
+  { code: "MAD", symbol: "د.م.", name: "Moroccan Dirham" },
+  { code: "CLP", symbol: "$", name: "Chilean Peso" },
+  { code: "COP", symbol: "$", name: "Colombian Peso" },
+  { code: "ARS", symbol: "$", name: "Argentine Peso" },
+  { code: "TWD", symbol: "NT$", name: "Taiwan Dollar" },
+  { code: "JOD", symbol: "د.ا", name: "Jordanian Dinar" },
+  { code: "AFN", symbol: "؋", name: "Afghan Afghani" },
+  { code: "ALL", symbol: "L", name: "Albanian Lek" },
+  { code: "DZD", symbol: "د.ج", name: "Algerian Dinar" },
+];
+
+/* ── Countries ── */
+export const COUNTRIES: Country[] = [
+  { name: "Afghanistan", code: "AF", currency: "AFN", timezone: "Asia/Kabul" },
+  { name: "Albania", code: "AL", currency: "ALL", timezone: "Europe/Tirane" },
+  { name: "Algeria", code: "DZ", currency: "DZD", timezone: "Africa/Algiers" },
+  {
+    name: "Argentina",
+    code: "AR",
+    currency: "ARS",
+    timezone: "America/Argentina/Buenos_Aires",
+  },
+  {
+    name: "Australia",
+    code: "AU",
+    currency: "AUD",
+    timezone: "Australia/Sydney",
+  },
+  { name: "Austria", code: "AT", currency: "EUR", timezone: "Europe/Vienna" },
+  { name: "Bangladesh", code: "BD", currency: "BDT", timezone: "Asia/Dhaka" },
+  { name: "Belgium", code: "BE", currency: "EUR", timezone: "Europe/Brussels" },
+  {
+    name: "Brazil",
+    code: "BR",
+    currency: "BRL",
+    timezone: "America/Sao_Paulo",
+  },
+  { name: "Canada", code: "CA", currency: "CAD", timezone: "America/Toronto" },
+  { name: "Chile", code: "CL", currency: "CLP", timezone: "America/Santiago" },
+  { name: "China", code: "CN", currency: "CNY", timezone: "Asia/Shanghai" },
+  { name: "Colombia", code: "CO", currency: "COP", timezone: "America/Bogota" },
+  { name: "Croatia", code: "HR", currency: "EUR", timezone: "Europe/Zagreb" },
+  {
+    name: "Czech Republic",
+    code: "CZ",
+    currency: "CZK",
+    timezone: "Europe/Prague",
+  },
+  {
+    name: "Denmark",
+    code: "DK",
+    currency: "DKK",
+    timezone: "Europe/Copenhagen",
+  },
+  { name: "Egypt", code: "EG", currency: "EGP", timezone: "Africa/Cairo" },
+  { name: "Finland", code: "FI", currency: "EUR", timezone: "Europe/Helsinki" },
+  { name: "France", code: "FR", currency: "EUR", timezone: "Europe/Paris" },
+  { name: "Germany", code: "DE", currency: "EUR", timezone: "Europe/Berlin" },
+  { name: "Ghana", code: "GH", currency: "GHS", timezone: "Africa/Accra" },
+  { name: "Greece", code: "GR", currency: "EUR", timezone: "Europe/Athens" },
+  {
+    name: "Hong Kong",
+    code: "HK",
+    currency: "HKD",
+    timezone: "Asia/Hong_Kong",
+  },
+  { name: "Hungary", code: "HU", currency: "HUF", timezone: "Europe/Budapest" },
+  { name: "India", code: "IN", currency: "INR", timezone: "Asia/Kolkata" },
+  { name: "Indonesia", code: "ID", currency: "IDR", timezone: "Asia/Jakarta" },
+  { name: "Ireland", code: "IE", currency: "EUR", timezone: "Europe/Dublin" },
+  { name: "Israel", code: "IL", currency: "ILS", timezone: "Asia/Jerusalem" },
+  { name: "Italy", code: "IT", currency: "EUR", timezone: "Europe/Rome" },
+  { name: "Japan", code: "JP", currency: "JPY", timezone: "Asia/Tokyo" },
+  { name: "Jordan", code: "JO", currency: "JOD", timezone: "Asia/Amman" },
+  { name: "Kenya", code: "KE", currency: "KES", timezone: "Africa/Nairobi" },
+  { name: "Kuwait", code: "KW", currency: "KWD", timezone: "Asia/Kuwait" },
+  {
+    name: "Malaysia",
+    code: "MY",
+    currency: "MYR",
+    timezone: "Asia/Kuala_Lumpur",
+  },
+  {
+    name: "Mexico",
+    code: "MX",
+    currency: "MXN",
+    timezone: "America/Mexico_City",
+  },
+  {
+    name: "Morocco",
+    code: "MA",
+    currency: "MAD",
+    timezone: "Africa/Casablanca",
+  },
+  {
+    name: "Netherlands",
+    code: "NL",
+    currency: "EUR",
+    timezone: "Europe/Amsterdam",
+  },
+  {
+    name: "New Zealand",
+    code: "NZ",
+    currency: "NZD",
+    timezone: "Pacific/Auckland",
+  },
+  { name: "Nigeria", code: "NG", currency: "NGN", timezone: "Africa/Lagos" },
+  { name: "Norway", code: "NO", currency: "NOK", timezone: "Europe/Oslo" },
+  { name: "Pakistan", code: "PK", currency: "PKR", timezone: "Asia/Karachi" },
+  { name: "Philippines", code: "PH", currency: "PHP", timezone: "Asia/Manila" },
+  { name: "Poland", code: "PL", currency: "PLN", timezone: "Europe/Warsaw" },
+  { name: "Portugal", code: "PT", currency: "EUR", timezone: "Europe/Lisbon" },
+  { name: "Qatar", code: "QA", currency: "QAR", timezone: "Asia/Qatar" },
+  {
+    name: "Romania",
+    code: "RO",
+    currency: "RON",
+    timezone: "Europe/Bucharest",
+  },
+  {
+    name: "Saudi Arabia",
+    code: "SA",
+    currency: "SAR",
+    timezone: "Asia/Riyadh",
+  },
+  {
+    name: "Singapore",
+    code: "SG",
+    currency: "SGD",
+    timezone: "Asia/Singapore",
+  },
+  {
+    name: "South Africa",
+    code: "ZA",
+    currency: "ZAR",
+    timezone: "Africa/Johannesburg",
+  },
+  { name: "South Korea", code: "KR", currency: "KRW", timezone: "Asia/Seoul" },
+  { name: "Spain", code: "ES", currency: "EUR", timezone: "Europe/Madrid" },
+  { name: "Sri Lanka", code: "LK", currency: "LKR", timezone: "Asia/Colombo" },
+  { name: "Sweden", code: "SE", currency: "SEK", timezone: "Europe/Stockholm" },
+  {
+    name: "Switzerland",
+    code: "CH",
+    currency: "CHF",
+    timezone: "Europe/Zurich",
+  },
+  { name: "Taiwan", code: "TW", currency: "TWD", timezone: "Asia/Taipei" },
+  { name: "Thailand", code: "TH", currency: "THB", timezone: "Asia/Bangkok" },
+  { name: "Turkey", code: "TR", currency: "TRY", timezone: "Europe/Istanbul" },
+  { name: "UAE", code: "AE", currency: "AED", timezone: "Asia/Dubai" },
+  { name: "Ukraine", code: "UA", currency: "UAH", timezone: "Europe/Kiev" },
+  {
+    name: "United Kingdom",
+    code: "GB",
+    currency: "GBP",
+    timezone: "Europe/London",
+  },
+  {
+    name: "United States",
+    code: "US",
+    currency: "USD",
+    timezone: "America/New_York",
+  },
+  {
+    name: "Vietnam",
+    code: "VN",
+    currency: "VND",
+    timezone: "Asia/Ho_Chi_Minh",
+  },
+];
+
+/* ── Business types ── */
+export const BUSINESS_TYPES = [
+  "Salon",
+  "Barbershop",
+  "Clinic",
+  "Gym / Fitness",
+  "Spa",
+  "Therapist",
+  "Consultant",
+  "Home Services",
+  "Tutor",
+  "Physio / Rehab",
+  "Dental",
+  "Veterinary",
+  "Beauty Studio",
+  "Nail Salon",
+  "Tattoo Studio",
+  "Other",
+];
+
+/* ── Helpers ── */
+export const getCountryByCode = (code: string): Country | undefined =>
+  COUNTRIES.find((c) => c.code === code);
+
+export const getCurrencyByCode = (code: string): Currency | undefined =>
+  CURRENCIES.find((c) => c.code === code);

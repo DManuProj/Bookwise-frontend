@@ -1,0 +1,230 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@custom-variant dark (&:where(.dark, .dark *));
+/* ─────────────────────────────────────────────
+   THEME (Tailwind v4 tokens)
+───────────────────────────────────────────── */
+@theme {
+  /* Brand */
+  --color-brand-50: #ecfdf5;
+  --color-brand-100: #d1fae5;
+  --color-brand-200: #a7f3d0;
+  --color-brand-300: #6ee7b7;
+  --color-brand-400: #34d399;
+  --color-brand-500: #10b981;
+  --color-brand-600: #059669;
+  --color-brand-700: #047857;
+  --color-brand-800: #065f46;
+  --color-brand-900: #064e3b;
+  --color-brand-950: #022c22;
+
+  /* Fonts */
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+
+  /* Radius */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.625rem;
+  --radius-lg: 0.875rem;
+  --radius-xl: 1.25rem;
+
+  /* Animations */
+  --animate-fade-up: fadeUp 0.6s ease forwards;
+  --animate-fade-in: fadeIn 0.5s ease forwards;
+  --animate-float: float 3s ease-in-out infinite;
+  --animate-shimmer: shimmer 2s infinite;
+
+  /* 🔥 IMPORTANT: Map CSS vars to Tailwind colors */
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+
+  /* Keyframes */
+  @keyframes fadeUp {
+    0% {
+      opacity: 0;
+      transform: translateY(24px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes fadeIn {
+    0% {
+      opacity: 0;
+    }
+    100% {
+      opacity: 1;
+    }
+  }
+
+  @keyframes float {
+    0%,
+    100% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
+  }
+
+  @keyframes shimmer {
+    0% {
+      background-position: -200% 0;
+    }
+    100% {
+      background-position: 200% 0;
+    }
+  }
+}
+
+/* ─────────────────────────────────────────────
+   BASE VARIABLES (shadcn style)
+───────────────────────────────────────────── */
+@layer base {
+  :root {
+    --background: 150 40% 98%;
+    --foreground: 220 25% 18%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 220 25% 18%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 25% 18%;
+
+    --primary: 160 84% 39%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 150 35% 94%;
+    --secondary-foreground: 160 50% 20%;
+
+    --muted: 150 25% 94%;
+    --muted-foreground: 215 16% 46%;
+
+    --accent: 160 84% 39%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 150 25% 88%;
+    --input: 150 25% 88%;
+    --ring: 160 84% 39%;
+
+    --radius: 0.625rem;
+  }
+
+  .dark {
+    --background: 220 60% 6%;
+    --foreground: 150 15% 93%;
+
+    --card: 220 50% 9%;
+    --card-foreground: 150 15% 93%;
+
+    --popover: 220 50% 8%;
+    --popover-foreground: 150 15% 93%;
+
+    --primary: 160 84% 42%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 220 40% 12%;
+    --secondary-foreground: 150 20% 82%;
+
+    --muted: 220 40% 11%;
+    --muted-foreground: 215 18% 52%;
+
+    --accent: 160 84% 42%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 62% 50%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 220 40% 15%;
+    --input: 220 40% 15%;
+    --ring: 160 84% 42%;
+  }
+}
+
+/* ─────────────────────────────────────────────
+   BASE STYLES
+───────────────────────────────────────────── */
+@layer base {
+  * {
+    border-color: hsl(var(--border));
+    box-sizing: border-box;
+  }
+
+  body {
+    background: linear-gradient(160deg, #f0fdf8 0%, #ffffff 100%);
+    color: hsl(var(--foreground));
+    min-height: 100vh;
+  }
+
+  .dark body {
+    background: linear-gradient(135deg, #020617 0%, #0f172a 100%);
+  }
+
+  :focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
+  }
+}
+
+/* ─────────────────────────────────────────────
+   UTILITIES
+───────────────────────────────────────────── */
+@layer utilities {
+  .bg-section {
+    background: transparent;
+  }
+
+  .bg-section-alt {
+    background: rgba(255, 255, 255, 0.65);
+    backdrop-filter: blur(2px);
+  }
+
+  .card-surface {
+    background-color: hsl(var(--card));
+    border: 1px solid hsl(var(--border));
+  }
+
+  .text-gradient {
+    background: linear-gradient(135deg, #059669, #10b981);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+}
+
+/* ─────────────────────────────────────────────
+   RADIX FIX
+───────────────────────────────────────────── */
+[data-radix-popper-content-wrapper],
+[data-radix-select-content] {
+  z-index: 99999 !important;
+}
