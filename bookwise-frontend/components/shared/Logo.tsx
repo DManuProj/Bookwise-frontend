@@ -1,10 +1,13 @@
 import Link from "next/link";
+import { cn } from "@/lib/utils";
 
 interface LogoProps {
   variant?: "light" | "dark";
   size?: "sm" | "md" | "lg";
   asLink?: boolean;
   href?: string;
+  compact?: boolean;
+  className?: string;
 }
 
 const sizes = {
@@ -16,23 +19,20 @@ const sizes = {
 const Logo = ({
   variant = "dark",
   size = "md",
-  asLink = true,
+  asLink = false,
   href = "/",
+  compact = false,
+  className,
 }: LogoProps) => {
   const { icon, text } = sizes[size];
   const textColor = variant === "light" ? "text-white" : "text-slate-900";
-  const Wrapper = asLink ? Link : "div";
-  return (
-    <Wrapper
-      {...(asLink ? { href } : {})}
-      className="flex items-center gap-2.5 group"
-    >
-      {/* Icon mark */}
+
+  const content = (
+    <>
       <div
-        className="relative flex items-center justify-center rounded-xl bg-brand-500 group-hover:bg-brand-600 transition-colors"
+        className="relative flex items-center justify-center rounded-xl bg-brand-500 transition-colors group-hover:bg-brand-600"
         style={{ width: icon, height: icon }}
       >
-        {/* Calendar base */}
         <svg
           width={icon * 0.58}
           height={icon * 0.58}
@@ -60,21 +60,47 @@ const Logo = ({
           <path d="M2 8h16" stroke="white" strokeWidth="1.5" />
           <rect x="6" y="2" width="2" height="4" rx="1" fill="white" />
           <rect x="12" y="2" width="2" height="4" rx="1" fill="white" />
-          {/* Voice waveform dots */}
           <circle cx="7" cy="12" r="1" fill="white" />
           <circle cx="10" cy="12" r="1.5" fill="white" />
           <circle cx="13" cy="12" r="1" fill="white" />
         </svg>
 
-        {/* Glow */}
-        <div className="absolute inset-0 rounded-xl bg-brand-400 opacity-0 group-hover:opacity-20 blur-sm transition-opacity" />
+        <div className="absolute inset-0 rounded-xl bg-brand-400 opacity-0 blur-sm transition-opacity group-hover:opacity-20" />
       </div>
 
-      {/* Wordmark */}
-      <span className={`font-bold tracking-tight ${text} text-white`}>
-        Book<span className="text-brand-500">Wise</span>
-      </span>
-    </Wrapper>
+      {!compact && (
+        <span className={cn("font-bold tracking-tight", text, textColor)}>
+          Book<span className="text-brand-500">Wise</span>
+        </span>
+      )}
+    </>
+  );
+
+  if (asLink) {
+    return (
+      <Link
+        href={href}
+        className={cn(
+          "group flex items-center gap-2.5 overflow-hidden",
+          compact && "justify-center",
+          className,
+        )}
+      >
+        {content}
+      </Link>
+    );
+  }
+
+  return (
+    <div
+      className={cn(
+        "group flex items-center gap-2.5 overflow-hidden",
+        compact && "justify-center",
+        className,
+      )}
+    >
+      {content}
+    </div>
   );
 };
 

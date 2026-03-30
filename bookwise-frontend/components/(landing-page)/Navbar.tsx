@@ -38,7 +38,7 @@ const Navbar = () => {
         fixed top-0 left-0 right-0 z-50
         transition-all duration-300
        
-             "bg-white/85 bg-[#070e1d]/85 backdrop-blur-2xl shadow-sm shadow-black/5 border-b border-brand-500/15 dark:border-brand-500/20"
+             " bg-[#070e1d]/85 backdrop-blur-2xl shadow-sm shadow-black/5 border-b border-brand-500/15 dark:border-brand-500/20"
            
         
       `}
@@ -46,7 +46,7 @@ const Navbar = () => {
       <Container>
         <div className="flex items-center justify-between h-16 md:h-18">
           {/* Logo */}
-          <Logo variant={isDark ? "light" : "dark"} />
+          <Logo asLink href="/" variant={isDark ? "light" : "dark"} />
 
           {/* Desktop nav links */}
           <nav className="hidden md:flex items-center gap-0.5">
