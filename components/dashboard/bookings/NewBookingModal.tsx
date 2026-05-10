@@ -1,9 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -29,6 +28,13 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import {
+  Command,
+  CommandEmpty,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import {
   Field,
   FieldError,
   FieldLabel,
@@ -45,73 +51,72 @@ import {
   Users,
   Clock,
   FileText,
+  ChevronsUpDown,
+  UserPlus,
+  ArrowLeft,
+  Pencil,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import {
+  Booking,
+  Customer,
+  DashboardBookingInputs,
+  dashboardBookingSchema,
+} from "@/types";
+import { format as formatDate } from "date-fns";
+import { useServices } from "@/hooks/api/useServices";
+import { useStaff } from "@/hooks/api/useStaff";
+import {
+  useBookingSlots,
+  useCreateBooking,
+  useEditBooking,
+} from "@/hooks/api/useBookings";
+import { useCustomers } from "@/hooks/api/useCustomers";
+import { useDebounce } from "@/hooks/useDebounce";
+import { Skeleton } from "@/components/ui/skeleton";
 
-/* ── Zod schema ── */
-const newBookingSchema = z.object({
-  customerName: z.string().min(2, "Name must be at least 2 characters"),
-  customerEmail: z.string().email("Enter a valid email address"),
-  customerPhone: z.string().min(7, "Enter a valid phone number"),
-  serviceId: z.string().min(1, "Please select a service"),
-  staffId: z.string().min(1, "Please select a staff member"),
-  date: z.date({ required_error: "Please select a date" }),
-  time: z.string().min(1, "Please select a time slot"),
-  note: z.string().optional(),
-});
-
-type FormValues = z.infer<typeof newBookingSchema>;
-
-/* ── Placeholder data — replace with API calls ── */
-const SERVICES = [
-  { id: "s1", name: "Haircut", duration: 45 },
-  { id: "s2", name: "Deep Tissue Massage", duration: 60 },
-  { id: "s3", name: "Manicure", duration: 30 },
-  { id: "s4", name: "Swedish Massage", duration: 60 },
-  { id: "s5", name: "Beard Trim", duration: 20 },
-  { id: "s6", name: "Facial", duration: 60 },
-];
-
-const STAFF = [
-  { id: "st1", name: "James", role: "Admin" },
-  { id: "st2", name: "Anna", role: "Member" },
-  { id: "st3", name: "You", role: "Owner" },
-];
-
-const TIME_SLOTS = [
-  "9:00 AM",
-  "9:30 AM",
-  "10:00 AM",
-  "10:30 AM",
-  "11:00 AM",
-  "11:30 AM",
-  "12:00 PM",
-  "12:30 PM",
-  "1:00 PM",
-  "1:30 PM",
-  "2:00 PM",
-  "2:30 PM",
-  "3:00 PM",
-  "3:30 PM",
-  "4:00 PM",
-  "4:30 PM",
-  "5:00 PM",
-  "5:30 PM",
-];
-
-/* ── Types ── */
-type Props = {
-  open: boolean;
-  onClose: () => void;
+const combineDateTime = (date: Date, timeSlot: string): string => {
+  const [time, period] = timeSlot.split(" ");
+  const [h, m] = time.split(":").map(Number);
+  const hours =
+    period === "PM" && h !== 12 ? h + 12 : period === "AM" && h === 12 ? 0 : h;
+  const result = new Date(date);
+  result.setHours(hours, m, 0, 0);
+  return result.toISOString();
 };
 
-/* ── Component ── */
-const NewBookingModal = ({ open, onClose }: Props) => {
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [serviceId, setServiceId] = useState("");
-  const [staffId, setStaffId] = useState("");
-  const [time, setTime] = useState("");
+const NewBookingModal = ({
+  open,
+  onClose,
+  booking = null,
+}: {
+  open: boolean;
+  onClose: () => void;
+  booking?: Booking | null;
+}) => {
+  const isEdit = !!booking;
+
   const [calendarOpen, setCalendarOpen] = useState(false);
+  const [mode, setMode] = useState<"pick" | "new">("pick");
+  const [comboboxOpen, setComboboxOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(
+    null,
+  );
+  const [pickerError, setPickerError] = useState("");
+
+  const debouncedSearch = useDebounce(search, 300);
+
+  const { data: services, isPending: servicesLoading } = useServices();
+  const { data: staffData, isPending: staffLoading } = useStaff();
+  const { data: customers, isPending: customersLoading } = useCustomers({
+    search: debouncedSearch,
+    limit: 10,
+  });
+
+  const { mutate: createBooking, isPending: isCreating } = useCreateBooking();
+  const { mutate: editBooking, isPending: isEditing } = useEditBooking();
+  const isSubmitting = isEdit ? isEditing : isCreating;
 
   const {
     register,
@@ -120,8 +125,8 @@ const NewBookingModal = ({ open, onClose }: Props) => {
     watch,
     reset,
     formState: { errors },
-  } = useForm<FormValues>({
-    resolver: zodResolver(newBookingSchema),
+  } = useForm<DashboardBookingInputs>({
+    resolver: zodResolver(dashboardBookingSchema),
     mode: "onSubmit",
     reValidateMode: "onChange",
     defaultValues: {
@@ -136,105 +141,357 @@ const NewBookingModal = ({ open, onClose }: Props) => {
   });
 
   const selectedDate = watch("date");
-  const selectedService = SERVICES.find((s) => s.id === serviceId);
+  const watchedServiceId = watch("serviceId");
+  const watchedStaffId = watch("staffId");
+  const watchedDate = watch("date");
+  const watchedTime = watch("time");
 
-  /* ── Reset on close ── */
+  const dateParam = watchedDate ? formatDate(watchedDate, "yyyy-MM-dd") : "";
+  const selectedService = services?.find((s) => s.id === watchedServiceId);
+
+  useEffect(() => {
+    if (booking && open) {
+      const d = new Date(booking.startAt);
+      const h = d.getHours();
+      const m = d.getMinutes();
+      const hour12 = h % 12 || 12;
+      const period = h >= 12 ? "PM" : "AM";
+      const timeSlot = `${hour12}:${String(m).padStart(2, "0")} ${period}`;
+      reset({
+        customerName: booking.customer?.name ?? "Customer",
+        customerEmail: booking.customer?.email ?? "customer@bookwise.io",
+        customerPhone: booking.customer?.phone ?? "0000000",
+        serviceId: booking.serviceId,
+        staffId: booking.userId ?? "",
+        date: d,
+        time: timeSlot,
+        note: booking.note ?? "",
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [booking?.id, open]);
+
+  const { data: slots, isPending: slotsLoading } = useBookingSlots(
+    watchedServiceId,
+    watchedStaffId,
+    dateParam,
+    booking?.id,
+  );
+
+  const handlePickCustomer = (customer: Customer) => {
+    setSelectedCustomer(customer);
+    setPickerError("");
+    setValue("customerName", customer.name);
+    setValue("customerEmail", customer.email);
+    setValue("customerPhone", customer.phone);
+  };
+
+  const handleSwitchToNew = () => {
+    setMode("new");
+    setSelectedCustomer(null);
+    setSearch("");
+    setPickerError("");
+    setValue("customerName", "");
+    setValue("customerEmail", "");
+    setValue("customerPhone", "");
+  };
+
+  const handleSwitchToPick = () => {
+    setMode("pick");
+    setPickerError("");
+    setValue("customerName", "");
+    setValue("customerEmail", "");
+    setValue("customerPhone", "");
+  };
+
   const handleClose = () => {
-    reset();
-    setServiceId("");
-    setStaffId("");
-    setTime("");
+    reset({
+      customerName: "",
+      customerEmail: "",
+      customerPhone: "",
+      serviceId: "",
+      staffId: "",
+      time: "",
+      note: "",
+    });
+    setMode("pick");
+    setComboboxOpen(false);
+    setSearch("");
+    setSelectedCustomer(null);
+    setPickerError("");
     onClose();
   };
 
-  /* ── Submit ── */
-  const onSubmit = async (values: FormValues) => {
-    setIsSubmitting(true);
-    try {
-      // TODO: POST /api/bookings
-      console.log("New booking:", values);
-      await new Promise((res) => setTimeout(res, 1200));
-      handleClose();
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setIsSubmitting(false);
+  const handleFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!isEdit && mode === "pick" && !selectedCustomer) {
+      setPickerError("Please select a customer or switch to add a new one.");
+      return;
+    }
+    handleSubmit(onSubmit)(e);
+  };
+
+  const onSubmit = (values: DashboardBookingInputs) => {
+    if (isEdit && booking) {
+      editBooking(
+        {
+          id: booking.id,
+          serviceId: values.serviceId,
+          staffId: values.staffId,
+          startAt: combineDateTime(values.date, values.time),
+          note: values.note,
+        },
+        { onSuccess: () => handleClose() },
+      );
+    } else {
+      createBooking(
+        {
+          serviceId: values.serviceId,
+          staffId: values.staffId,
+          startAt: combineDateTime(values.date, values.time),
+          note: values.note,
+          ...(mode === "pick" && selectedCustomer
+            ? { customerId: selectedCustomer.id }
+            : {
+                customer: {
+                  name: values.customerName,
+                  email: values.customerEmail,
+                  phone: values.customerPhone,
+                },
+              }),
+        },
+        { onSuccess: () => handleClose() },
+      );
     }
   };
 
   return (
-    <Dialog open={open} onOpenChange={handleClose}>
+    <Dialog open={open} onOpenChange={(o) => !o && handleClose()}>
       <DialogContent className="max-w-xl! w-full p-0 gap-0 overflow-hidden">
-        {/* Fixed header — never scrolls */}
+        {/* Fixed header */}
         <DialogHeader className="px-6 pt-6 pb-4 border-b border-border shrink-0">
-          <DialogTitle className="text-xl font-bold">New Booking</DialogTitle>
+          <DialogTitle className="text-xl font-bold">
+            {isEdit ? (
+              <span className="flex items-center gap-2">
+                <Pencil className="h-5 w-5" />
+                Edit Booking
+              </span>
+            ) : (
+              "New Booking"
+            )}
+          </DialogTitle>
           <DialogDescription className="text-sm text-muted-foreground">
-            Create a manual booking. Customer will receive a confirmation.
+            {isEdit
+              ? "Update the appointment details below."
+              : "Create a manual booking. Customer will receive a confirmation."}
           </DialogDescription>
         </DialogHeader>
 
-        {/* Scrollable content — only this area scrolls */}
-        <div className=" -mx-3 overflow-y-auto no-scrollbar! max-h-[70vh] flex-1 px-10! py-5 space-y-5">
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-            {/* ── Customer details ── */}
-            <div>
-              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-                Customer Details
-              </p>
-              <div className="space-y-3">
-                {/* Name */}
-                <Field>
-                  <FieldLabel>Full Name *</FieldLabel>
-                  <div className="relative">
-                    <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-                    <Input
-                      placeholder="e.g. Sarah Johnson"
-                      className="pl-9 "
-                      aria-invalid={!!errors.customerName}
-                      {...register("customerName")}
-                    />
+        {/* Scrollable content */}
+        <div className="-mx-3 overflow-y-auto no-scrollbar! max-h-[70vh] flex-1 px-10! py-5 space-y-5">
+          <form
+            id="new-booking-form"
+            onSubmit={handleFormSubmit}
+            className="space-y-5"
+          >
+            {/* Customer details — hidden in edit mode */}
+            {!isEdit && (
+              <>
+                <div>
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
+                    Customer Details
+                  </p>
+                  <div className="space-y-3">
+                    {mode === "pick" ? (
+                      <>
+                        {/* Customer combobox */}
+                        <Field>
+                          <FieldLabel>Search Customer *</FieldLabel>
+                          <Popover
+                            open={comboboxOpen}
+                            onOpenChange={setComboboxOpen}
+                          >
+                            <PopoverTrigger asChild>
+                              <button
+                                type="button"
+                                role="combobox"
+                                aria-expanded={comboboxOpen}
+                                className={cn(
+                                  "flex h-11 w-full items-center justify-between gap-2 rounded-md border px-3 text-sm text-left transition-colors",
+                                  "border-gray-300 dark:border-teal-500/30 bg-transparent",
+                                  "hover:border-gray-400 dark:hover:border-teal-400",
+                                  pickerError ? "border-destructive" : "",
+                                )}
+                              >
+                                {selectedCustomer ? (
+                                  <span className="text-foreground truncate">
+                                    {selectedCustomer.name}
+                                  </span>
+                                ) : (
+                                  <span className="text-muted-foreground">
+                                    Search by name, email, or phone...
+                                  </span>
+                                )}
+                                <ChevronsUpDown className="h-4 w-4 text-muted-foreground shrink-0" />
+                              </button>
+                            </PopoverTrigger>
+                            <PopoverContent
+                              className="w-(--radix-popover-trigger-width) p-0"
+                              align="start"
+                            >
+                              <Command shouldFilter={false}>
+                                <CommandInput
+                                  placeholder="Type name, email, or phone..."
+                                  value={search}
+                                  onValueChange={setSearch}
+                                />
+                                <CommandList>
+                                  {customersLoading && (
+                                    <div className="flex items-center justify-center gap-2 py-4 text-sm text-muted-foreground">
+                                      <Loader2 className="h-4 w-4 animate-spin" />
+                                      Searching...
+                                    </div>
+                                  )}
+                                  {!customersLoading &&
+                                    customers?.data.length === 0 && (
+                                      <CommandEmpty>
+                                        No customers found.
+                                      </CommandEmpty>
+                                    )}
+                                  {!customersLoading &&
+                                    customers?.data?.map((c) => (
+                                      <CommandItem
+                                        key={c.id}
+                                        value={c.id}
+                                        onSelect={() => {
+                                          handlePickCustomer(c);
+                                          setComboboxOpen(false);
+                                        }}
+                                      >
+                                        <div>
+                                          <p className="font-medium">
+                                            {c.name}
+                                          </p>
+                                          <p className="text-xs text-muted-foreground">
+                                            {c.email} · {c.phone}
+                                          </p>
+                                        </div>
+                                      </CommandItem>
+                                    ))}
+                                </CommandList>
+                              </Command>
+                            </PopoverContent>
+                          </Popover>
+                          {pickerError && (
+                            <p className="text-xs text-destructive mt-1">
+                              {pickerError}
+                            </p>
+                          )}
+                        </Field>
+
+                        {/* Read-only email/phone after selection */}
+                        {selectedCustomer && (
+                          <div className="grid grid-cols-2 gap-3">
+                            <Field>
+                              <FieldLabel>Email</FieldLabel>
+                              <div className="relative">
+                                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                                <Input
+                                  readOnly
+                                  value={selectedCustomer.email}
+                                  className="pl-9 bg-muted/40 cursor-default"
+                                />
+                              </div>
+                            </Field>
+                            <Field>
+                              <FieldLabel>Phone</FieldLabel>
+                              <div className="relative">
+                                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                                <Input
+                                  readOnly
+                                  value={selectedCustomer.phone}
+                                  className="pl-9 bg-muted/40 cursor-default"
+                                />
+                              </div>
+                            </Field>
+                          </div>
+                        )}
+
+                        <button
+                          type="button"
+                          onClick={handleSwitchToNew}
+                          className="flex items-center gap-1.5 text-xs text-brand-600 dark:text-brand-400 hover:underline"
+                        >
+                          <UserPlus className="h-3.5 w-3.5" />
+                          Add as new customer
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <Field>
+                          <FieldLabel>Full Name *</FieldLabel>
+                          <div className="relative">
+                            <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                            <Input
+                              placeholder="e.g. Sarah Johnson"
+                              className="pl-9"
+                              aria-invalid={!!errors.customerName}
+                              {...register("customerName")}
+                            />
+                          </div>
+                          <FieldError errors={[errors.customerName]} />
+                        </Field>
+
+                        <div className="grid grid-cols-2 gap-3">
+                          <Field>
+                            <FieldLabel>Email *</FieldLabel>
+                            <div className="relative">
+                              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                              <Input
+                                type="email"
+                                placeholder="sarah@email.com"
+                                className="pl-9"
+                                aria-invalid={!!errors.customerEmail}
+                                {...register("customerEmail")}
+                              />
+                            </div>
+                            <FieldError errors={[errors.customerEmail]} />
+                          </Field>
+
+                          <Field>
+                            <FieldLabel>Phone *</FieldLabel>
+                            <div className="relative">
+                              <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                              <Input
+                                type="tel"
+                                placeholder="+1 555 0101"
+                                className="pl-9"
+                                aria-invalid={!!errors.customerPhone}
+                                {...register("customerPhone")}
+                              />
+                            </div>
+                            <FieldError errors={[errors.customerPhone]} />
+                          </Field>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={handleSwitchToPick}
+                          className="flex items-center gap-1.5 text-xs text-brand-600 dark:text-brand-400 hover:underline"
+                        >
+                          <ArrowLeft className="h-3.5 w-3.5" />
+                          Pick existing customer
+                        </button>
+                      </>
+                    )}
                   </div>
-                  <FieldError errors={[errors.customerName]} />
-                </Field>
-
-                {/* Email + Phone */}
-                <div className="grid grid-cols-2 gap-3">
-                  <Field>
-                    <FieldLabel>Email *</FieldLabel>
-                    <div className="relative">
-                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-                      <Input
-                        type="email"
-                        placeholder="sarah@email.com"
-                        className="pl-9 "
-                        aria-invalid={!!errors.customerEmail}
-                        {...register("customerEmail")}
-                      />
-                    </div>
-                    <FieldError errors={[errors.customerEmail]} />
-                  </Field>
-
-                  <Field>
-                    <FieldLabel>Phone *</FieldLabel>
-                    <div className="relative">
-                      <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-                      <Input
-                        type="tel"
-                        placeholder="+1 555 0101"
-                        className="pl-9  "
-                        aria-invalid={!!errors.customerPhone}
-                        {...register("customerPhone")}
-                      />
-                    </div>
-                    <FieldError errors={[errors.customerPhone]} />
-                  </Field>
                 </div>
-              </div>
-            </div>
 
-            <div className="h-px bg-border" />
+                <div className="h-px bg-border" />
+              </>
+            )}
 
-            {/* ── Appointment details ── */}
+            {/* Appointment details */}
             <div>
               <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
                 Appointment Details
@@ -244,11 +501,11 @@ const NewBookingModal = ({ open, onClose }: Props) => {
                 <Field>
                   <FieldLabel>Service *</FieldLabel>
                   <Select
-                    value={serviceId}
-                    onValueChange={(val) => {
-                      setServiceId(val);
-                      setValue("serviceId", val, { shouldValidate: true });
-                    }}
+                    disabled={servicesLoading}
+                    value={watchedServiceId}
+                    onValueChange={(val) =>
+                      setValue("serviceId", val, { shouldValidate: true })
+                    }
                   >
                     <SelectTrigger aria-invalid={!!errors.serviceId}>
                       <div className="flex items-center gap-2">
@@ -257,12 +514,12 @@ const NewBookingModal = ({ open, onClose }: Props) => {
                       </div>
                     </SelectTrigger>
                     <SelectContent>
-                      {SERVICES.map((s) => (
+                      {services?.map((s) => (
                         <SelectItem key={s.id} value={s.id}>
                           <div className="flex items-center justify-between w-full gap-4">
                             <span>{s.name}</span>
                             <span className="text-xs text-muted-foreground">
-                              {s.duration}min
+                              {s.durationMins}min
                             </span>
                           </div>
                         </SelectItem>
@@ -272,7 +529,7 @@ const NewBookingModal = ({ open, onClose }: Props) => {
                   {selectedService && (
                     <p className="text-xs text-brand-600 dark:text-brand-400 flex items-center gap-1 mt-1">
                       <Clock className="h-3 w-3" />
-                      Duration: {selectedService.duration} minutes
+                      Duration: {selectedService.durationMins} minutes
                     </p>
                   )}
                   <FieldError errors={[errors.serviceId]} />
@@ -282,11 +539,11 @@ const NewBookingModal = ({ open, onClose }: Props) => {
                 <Field>
                   <FieldLabel>Staff Member *</FieldLabel>
                   <Select
-                    value={staffId}
-                    onValueChange={(val) => {
-                      setStaffId(val);
-                      setValue("staffId", val, { shouldValidate: true });
-                    }}
+                    disabled={staffLoading}
+                    value={watchedStaffId}
+                    onValueChange={(val) =>
+                      setValue("staffId", val, { shouldValidate: true })
+                    }
                   >
                     <SelectTrigger aria-invalid={!!errors.staffId}>
                       <div className="flex items-center gap-2">
@@ -295,14 +552,9 @@ const NewBookingModal = ({ open, onClose }: Props) => {
                       </div>
                     </SelectTrigger>
                     <SelectContent>
-                      {STAFF.map((s) => (
-                        <SelectItem key={s.id} value={s.id}>
-                          <div className="flex items-center gap-2">
-                            <span>{s.name}</span>
-                            <span className="text-xs text-muted-foreground">
-                              — {s.role}
-                            </span>
-                          </div>
+                      {staffData?.users.map((u) => (
+                        <SelectItem key={u.id} value={u.id}>
+                          {u.firstName} {u.lastName}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -343,9 +595,8 @@ const NewBookingModal = ({ open, onClose }: Props) => {
                         onSelect={(date) => {
                           if (date) {
                             setValue("date", date, { shouldValidate: true });
-                            setCalendarOpen(false);
-                            setTime("");
                             setValue("time", "");
+                            setCalendarOpen(false);
                           }
                         }}
                         disabled={(date) =>
@@ -366,24 +617,43 @@ const NewBookingModal = ({ open, onClose }: Props) => {
                       Available slots for {format(selectedDate, "MMM d")}
                     </FieldDescription>
                     <div className="grid grid-cols-4 gap-2 mt-1">
-                      {TIME_SLOTS.map((slot) => (
-                        <button
-                          key={slot}
-                          type="button"
-                          onClick={() => {
-                            setTime(slot);
-                            setValue("time", slot, { shouldValidate: true });
-                          }}
-                          className={cn(
-                            "h-9 rounded-lg text-xs font-medium border transition-all duration-150",
-                            time === slot
-                              ? "bg-brand-500 border-brand-500 text-white shadow-sm shadow-brand-500/20"
-                              : "border-border text-muted-foreground hover:border-brand-400 hover:text-brand-600 dark:hover:text-brand-400",
-                          )}
-                        >
-                          {slot}
-                        </button>
-                      ))}
+                      {slotsLoading ? (
+                        Array.from({ length: 8 }).map((_, i) => (
+                          <Skeleton key={i} className="h-9 rounded-lg" />
+                        ))
+                      ) : !slots || slots.length === 0 ? (
+                        <div className="col-span-4 text-sm text-muted-foreground text-center py-4">
+                          No slots available. Try a different date or staff
+                          member.
+                        </div>
+                      ) : (
+                        slots.map((slot) => {
+                          const [h, m] = slot.split(":").map(Number);
+                          const hour12 = h % 12 || 12;
+                          const period = h >= 12 ? "PM" : "AM";
+                          const display = `${hour12}:${String(m).padStart(2, "0")} ${period}`;
+
+                          return (
+                            <button
+                              key={slot}
+                              type="button"
+                              onClick={() =>
+                                setValue("time", display, {
+                                  shouldValidate: true,
+                                })
+                              }
+                              className={cn(
+                                "h-9 rounded-lg text-xs font-medium border transition-all duration-150",
+                                watchedTime === display
+                                  ? "bg-brand-500 border-brand-500 text-white shadow-sm shadow-brand-500/20"
+                                  : "border-border text-muted-foreground hover:border-brand-400 hover:text-brand-600 dark:hover:text-brand-400",
+                              )}
+                            >
+                              {display}
+                            </button>
+                          );
+                        })
+                      )}
                     </div>
                     {errors.time && (
                       <p className="text-xs text-destructive mt-1">
@@ -411,7 +681,7 @@ const NewBookingModal = ({ open, onClose }: Props) => {
           </form>
         </div>
 
-        {/* Fixed footer — never scrolls */}
+        {/* Fixed footer */}
         <div className="px-6 py-4 border-t border-border shrink-0 flex gap-3">
           <Button
             type="button"
@@ -423,20 +693,20 @@ const NewBookingModal = ({ open, onClose }: Props) => {
             Cancel
           </Button>
           <Button
-            type="button"
-            onClick={handleSubmit(onSubmit)}
+            type="submit"
+            form="new-booking-form"
             disabled={isSubmitting}
             className="flex-1 bg-brand-500 hover:bg-brand-600 text-white rounded-xl shadow-md shadow-brand-500/20 disabled:opacity-70"
           >
             {isSubmitting ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Creating...
+                {isEdit ? "Saving..." : "Creating..."}
               </>
             ) : (
               <>
                 <CheckCircle2 className="mr-2 h-4 w-4" />
-                Create Booking
+                {isEdit ? "Save Changes" : "Create Booking"}
               </>
             )}
           </Button>

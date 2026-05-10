@@ -30,7 +30,7 @@ import {
   FieldDescription,
 } from "@/components/ui/field";
 import { CheckCircle2, Loader2, DollarSign, Clock, Zap } from "lucide-react";
-import { serviceSchema, type Service } from "@/types";
+import { ServiceFormInputs, serviceSchema, type Service } from "@/types";
 
 /* ── Zod schema ── */
 const serviceFormSchema = serviceSchema.extend({ isActive: z.boolean() });
@@ -61,9 +61,10 @@ const BUFFERS = [
 type Props = {
   open: boolean;
   onClose: () => void;
-  onSave: (service: Omit<Service, "id">) => void;
+  onSave: (service: ServiceFormInputs) => void;
   editService: Service | null; // null = add mode, Service = edit mode
   currency: string;
+  isSubmitting: boolean;
 };
 
 /* ── Component ── */
@@ -73,11 +74,11 @@ const ServiceFormModal = ({
   onSave,
   editService,
   currency,
+  isSubmitting,
 }: Props) => {
   const isEdit = !!editService;
 
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [duration, setDuration] = useState(60);
+  const [durationMins, setDuration] = useState(60);
   const [buffer, setBuffer] = useState(0);
   const [isActive, setIsActive] = useState(true);
 
@@ -93,7 +94,7 @@ const ServiceFormModal = ({
     reValidateMode: "onChange",
     defaultValues: {
       name: "",
-      duration: 60,
+      durationMins: 60,
       price: 0,
       buffer: 0,
       description: "",
@@ -106,19 +107,19 @@ const ServiceFormModal = ({
     if (editService) {
       reset({
         name: editService.name,
-        duration: editService.duration,
+        durationMins: editService.durationMins,
         price: editService.price,
         buffer: editService.buffer,
-        description: editService.description,
+        description: editService.description ?? "",
         isActive: editService.isActive,
       });
-      setDuration(editService.duration);
+      setDuration(editService.durationMins);
       setBuffer(editService.buffer);
       setIsActive(editService.isActive);
     } else {
       reset({
         name: "",
-        duration: 60,
+        durationMins: 60,
         price: 0,
         buffer: 0,
         description: "",
@@ -136,17 +137,7 @@ const ServiceFormModal = ({
   };
 
   const onSubmit = async (values: FormValues) => {
-    setIsSubmitting(true);
-    try {
-      // TODO: POST /api/services or PUT /api/services/:id
-      await new Promise((res) => setTimeout(res, 800));
-      onSave(values);
-      handleClose();
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setIsSubmitting(false);
-    }
+    onSave(values);
   };
 
   return (
@@ -200,14 +191,14 @@ const ServiceFormModal = ({
                   </span>
                 </FieldLabel>
                 <Select
-                  value={String(duration)}
+                  value={String(durationMins)}
                   onValueChange={(v) => {
                     const num = Number(v);
                     setDuration(num);
-                    setValue("duration", num, { shouldValidate: true });
+                    setValue("durationMins", num, { shouldValidate: true });
                   }}
                 >
-                  <SelectTrigger aria-invalid={!!errors.duration}>
+                  <SelectTrigger aria-invalid={!!errors.durationMins}>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -218,7 +209,7 @@ const ServiceFormModal = ({
                     ))}
                   </SelectContent>
                 </Select>
-                <FieldError errors={[errors.duration]} />
+                <FieldError errors={[errors.durationMins]} />
               </Field>
 
               <Field>

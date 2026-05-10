@@ -35,8 +35,9 @@ import {
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { serviceSchema, type Step4Data } from "@/types";
+import { ServiceFormInputs, serviceSchema } from "@/types";
 import { getCurrencyByCode } from "@/lib/countries";
+import { isAscii } from "buffer";
 
 const onBoardingServiceSchema = z.object({
   services: z.array(serviceSchema).min(1, "At least one service is required"),
@@ -60,17 +61,18 @@ const BUFFERS = [
 /* ── Helpers ── */
 const emptyService = () => ({
   name: "",
-  duration: 60,
+  durationMins: 60,
   price: 0,
   buffer: 0,
   description: "",
+  isActive: true,
 });
 
 /* ── Props ── */
 type Props = {
-  initialData: Step4Data | null;
+  initialData: ServiceFormInputs[];
   currency: string;
-  onComplete: (data: Step4Data) => void;
+  onComplete: (data: ServiceFormInputs[]) => void;
   onBack: () => void;
   isSubmitting: boolean;
 };
@@ -93,12 +95,10 @@ const OnboardingServices = ({
     formState: { errors },
   } = useForm<FormValues>({
     resolver: zodResolver(onBoardingServiceSchema),
-    mode: "onTouched", // ← validates on blur
+    mode: "onTouched",
     reValidateMode: "onChange",
     defaultValues: {
-      services: initialData?.services?.length
-        ? initialData.services
-        : [emptyService()],
+      services: initialData.length ? initialData : [emptyService()],
     },
   });
 
@@ -109,7 +109,7 @@ const OnboardingServices = ({
 
   /* ── Submit ── */
   const onSubmit = (data: FormValues) => {
-    onComplete({ services: data.services });
+    onComplete(data.services);
   };
 
   return (
@@ -168,9 +168,9 @@ const OnboardingServices = ({
                 <Field className="mb-4">
                   <FieldLabel>Duration *</FieldLabel>
                   <Select
-                    defaultValue={String(field.duration)}
+                    defaultValue={String(field.durationMins)}
                     onValueChange={(v) =>
-                      setValue(`services.${index}.duration`, Number(v), {
+                      setValue(`services.${index}.durationMins`, Number(v), {
                         shouldValidate: true,
                       })
                     }
@@ -187,7 +187,7 @@ const OnboardingServices = ({
                     </SelectContent>
                   </Select>
                   <FieldError
-                    errors={[errors.services?.[index]?.duration].filter(
+                    errors={[errors.services?.[index]?.durationMins].filter(
                       Boolean,
                     )}
                   />

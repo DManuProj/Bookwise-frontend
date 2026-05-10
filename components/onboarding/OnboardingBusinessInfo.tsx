@@ -28,10 +28,11 @@ import {
   CURRENCIES,
 } from "@/lib/countries";
 import { businessFormSchema } from "@/types";
-import type { BusinessFormInputs, Step1Data, SlugStatus } from "@/types";
+import type { BusinessFormInputs, OnboardingData, SlugStatus } from "@/types";
 import {
   Building2,
   Globe,
+  MapPin,
   Phone,
   ArrowRight,
   CheckCircle2,
@@ -40,6 +41,7 @@ import {
   Upload,
   X,
 } from "lucide-react";
+import { useSlugCheck } from "@/hooks/api/useSlugCheck";
 
 /* ── Slug helper ── */
 const toSlug = (value: string) =>
@@ -53,21 +55,19 @@ const toSlug = (value: string) =>
 
 /* ── Types ── */
 type Props = {
-  initialData: Step1Data | null;
-  onComplete: (data: Step1Data) => void;
+  initialData: OnboardingData; // ← receives whole flat formData
+  onComplete: (data: BusinessFormInputs & { logo: File | null }) => void;
 };
 
 const OnboardingBusinessInfo = ({ initialData, onComplete }: Props) => {
-  const [logo, setLogo] = useState<File | null>(initialData?.logo ?? null);
+  const [logo, setLogo] = useState<File | null>(initialData.logo ?? null);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
-  const [slugStatus, setSlugStatus] = useState<SlugStatus>("idle");
-  const [currency, setCurrency] = useState(initialData?.currency ?? "");
+  const [currency, setCurrency] = useState(initialData.currency ?? "");
   const [businessType, setBusinessType] = useState(
-    initialData?.businessType ?? "",
+    initialData.businessType ?? "",
   );
-  const [country, setCountry] = useState(initialData?.country ?? "");
+  const [country, setCountry] = useState(initialData.country ?? "");
 
-  const slugDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [mounted, setMounted] = useState(false);
@@ -80,16 +80,17 @@ const OnboardingBusinessInfo = ({ initialData, onComplete }: Props) => {
     formState: { errors },
   } = useForm<BusinessFormInputs>({
     resolver: zodResolver(businessFormSchema),
-    mode: "onTouched", // ← validates on blur
+    mode: "onTouched",
     reValidateMode: "onChange",
     defaultValues: {
-      businessName: initialData?.businessName ?? "",
-      slug: initialData?.slug ?? "",
-      businessType: initialData?.businessType ?? "",
-      phone: initialData?.phone ?? "",
-      description: initialData?.description ?? "",
-      country: initialData?.country ?? "",
-      currency: initialData?.currency ?? "",
+      businessName: initialData.businessName ?? "",
+      slug: initialData.slug ?? "",
+      businessType: initialData.businessType ?? "",
+      phone: initialData.phone ?? "",
+      description: initialData.description ?? "",
+      address: initialData.address ?? "",
+      country: initialData.country ?? "",
+      currency: initialData.currency ?? "",
     },
   });
 
@@ -104,33 +105,8 @@ const OnboardingBusinessInfo = ({ initialData, onComplete }: Props) => {
     }
   }, [businessName]);
 
-  /* ── Slug availability check (debounced 500ms) ── */
-  useEffect(() => {
-    if (!slug || slug.length < 3) {
-      setSlugStatus("idle");
-      return;
-    }
-    if (!/^[a-z0-9-]+$/.test(slug)) {
-      setSlugStatus("invalid");
-      return;
-    }
-
-    setSlugStatus("checking");
-    if (slugDebounceRef.current) clearTimeout(slugDebounceRef.current);
-
-    slugDebounceRef.current = setTimeout(async () => {
-      // TODO: replace with real API call
-      // const res = await fetch(`/api/slug/check?slug=${slug}`)
-      // const { available } = await res.json()
-      await new Promise((res) => setTimeout(res, 600));
-      const taken = ["demo", "test", "admin", "bookwise"].includes(slug);
-      setSlugStatus(taken ? "taken" : "available");
-    }, 500);
-
-    return () => {
-      if (slugDebounceRef.current) clearTimeout(slugDebounceRef.current);
-    };
-  }, [slug]);
+  // ADD THIS INSTEAD:
+  const { data: slugData, isFetching: isCheckingSlug } = useSlugCheck(slug);
 
   //for radis error
   useEffect(() => {
@@ -158,6 +134,15 @@ const OnboardingBusinessInfo = ({ initialData, onComplete }: Props) => {
     setLogoPreview(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
+
+  const slugStatus: SlugStatus = (() => {
+    if (!slug || slug.length < 3) return "idle";
+    if (!/^[a-z0-9-]+$/.test(slug)) return "invalid";
+    if (isCheckingSlug) return "checking";
+    if (slugData?.available === true) return "available";
+    if (slugData?.available === false) return "taken";
+    return "idle";
+  })();
 
   /* ── Submit ── */
   const onSubmit = (values: BusinessFormInputs) => {
@@ -361,6 +346,21 @@ const OnboardingBusinessInfo = ({ initialData, onComplete }: Props) => {
             {...register("description")}
           />
           <FieldError errors={[errors.description]} />
+        </Field>
+
+        {/* ── Address ── */}
+        <Field>
+          <FieldLabel>Business Address</FieldLabel>
+          <FieldDescription>Optional</FieldDescription>
+          <div className="relative">
+            <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+            <Input
+              placeholder="e.g. 123 Main St, Auckland"
+              className="pl-10"
+              {...register("address")}
+            />
+          </div>
+          <FieldError errors={[errors.address]} />
         </Field>
 
         {/* ── Country ── */}

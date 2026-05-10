@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
@@ -10,7 +10,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Field, FieldLabel, FieldDescription } from "@/components/ui/field";
+import { Skeleton } from "@/components/ui/skeleton";
 import SettingsCard from "@/components/dashboard/settings/SettingsCard";
+import {
+  useOrganisation,
+  useUpdateOrganisation,
+} from "@/hooks/api/useOrganisation";
 
 const MIN_LEAD_OPTIONS = [
   { value: 0, label: "No minimum" },
@@ -36,39 +41,81 @@ type Prefs = {
   cancelPolicy: string;
 };
 
-const INITIAL: Prefs = {
-  minLeadTimeMins: 60,
-  bufferMins: 0,
-  maxPerSlot: 1,
-  cancelPolicy: "Cancellations must be made at least 24 hours in advance.",
-};
-
 const labelFor = (opts: { value: number; label: string }[], val: number) =>
   opts.find((o) => o.value === val)?.label ?? String(val);
 
 const SettingsBookingPrefs = () => {
-  const [isEditing, setIsEditing] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [saved, setSaved] = useState<Prefs>(INITIAL);
-  const [draft, setDraft] = useState<Prefs>(INITIAL);
+  const { data: org, isLoading } = useOrganisation();
+  const { mutate: updateOrg, isPending } = useUpdateOrganisation();
 
-  const isDirty = JSON.stringify(draft) !== JSON.stringify(saved);
+  const [isEditing, setIsEditing] = useState(false);
+  const [draft, setDraft] = useState<Prefs>({
+    minLeadTimeMins: 0,
+    bufferMins: 0,
+    maxPerSlot: 1,
+    cancelPolicy: "",
+  });
+
+  useEffect(() => {
+    if (!org) return;
+    setDraft({
+      minLeadTimeMins: org.minLeadTimeMins,
+      bufferMins: org.bufferMins,
+      maxPerSlot: org.maxPerSlot,
+      cancelPolicy: org.cancelPolicy ?? "",
+    });
+  }, [org]);
+
+  if (isLoading || !org)
+    return (
+      <SettingsCard
+        title="Booking Preferences"
+        description="Control how customers can book appointments"
+        isLoading={isLoading}
+      >
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="space-y-1">
+                <Skeleton className="h-3 w-24" />
+                <Skeleton className="h-4 w-20" />
+              </div>
+            ))}
+          </div>
+          <div className="space-y-1">
+            <Skeleton className="h-3 w-32" />
+            <Skeleton className="h-4 w-full" />
+          </div>
+        </div>
+      </SettingsCard>
+    );
+
+  const isDirty =
+    draft.minLeadTimeMins !== org.minLeadTimeMins ||
+    draft.bufferMins !== org.bufferMins ||
+    draft.maxPerSlot !== org.maxPerSlot ||
+    draft.cancelPolicy !== (org.cancelPolicy ?? "");
 
   const handleCancel = () => {
-    setDraft(saved);
+    setDraft({
+      minLeadTimeMins: org.minLeadTimeMins,
+      bufferMins: org.bufferMins,
+      maxPerSlot: org.maxPerSlot,
+      cancelPolicy: org.cancelPolicy ?? "",
+    });
     setIsEditing(false);
   };
 
-  const handleSave = async () => {
-    setIsSubmitting(true);
-    try {
-      // TODO: PUT /api/organisation/preferences
-      await new Promise((res) => setTimeout(res, 800));
-      setSaved(draft);
-      setIsEditing(false);
-    } finally {
-      setIsSubmitting(false);
-    }
+  const handleSave = () => {
+    updateOrg(
+      {
+        minLeadTimeMins: draft.minLeadTimeMins,
+        bufferMins: draft.bufferMins,
+        maxPerSlot: draft.maxPerSlot,
+        cancelPolicy: draft.cancelPolicy,
+      },
+      { onSuccess: () => setIsEditing(false) },
+    );
   };
 
   return (
@@ -76,7 +123,7 @@ const SettingsBookingPrefs = () => {
       title="Booking Preferences"
       description="Control how customers can book appointments"
       isEditing={isEditing}
-      isSubmitting={isSubmitting}
+      isSubmitting={isPending}
       isDirty={isDirty}
       onEdit={() => setIsEditing(true)}
       onCancel={handleCancel}
@@ -84,50 +131,56 @@ const SettingsBookingPrefs = () => {
     >
       {!isEditing ? (
         /* ── Read-only ── */
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          {[
-            {
-              label: "Minimum Notice",
-              value: labelFor(MIN_LEAD_OPTIONS, saved.minLeadTimeMins),
-            },
-            {
-              label: "Default Buffer",
-              value: labelFor(BUFFER_OPTIONS, saved.bufferMins),
-            },
-            { label: "Max Per Slot", value: String(saved.maxPerSlot) },
-          ].map(({ label, value }) => (
-            <div key={label}>
-              <p className="text-xs text-muted-foreground mb-0.5">{label}</p>
-              <p className="text-sm font-medium text-foreground">{value}</p>
-            </div>
-          ))}
-          {saved.cancelPolicy && (
-            <div className="sm:col-span-3">
-              <p className="text-xs text-muted-foreground mb-0.5">
-                Cancellation Policy
-              </p>
-              <p className="text-sm text-foreground">{saved.cancelPolicy}</p>
-            </div>
-          )}
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {[
+              {
+                label: "Minimum Notice",
+                value: labelFor(MIN_LEAD_OPTIONS, org.minLeadTimeMins),
+              },
+              {
+                label: "Default Buffer",
+                value: labelFor(BUFFER_OPTIONS, org.bufferMins),
+              },
+              { label: "Max Per Slot", value: String(org.maxPerSlot) },
+            ].map(({ label, value }) => (
+              <div key={label}>
+                <p className="text-xs text-muted-foreground mb-0.5">{label}</p>
+                <p className="text-sm font-medium text-foreground">{value}</p>
+              </div>
+            ))}
+          </div>
+          <div>
+            <p className="text-xs text-muted-foreground mb-0.5">
+              Cancellation Policy
+            </p>
+            <p
+              className={`text-sm ${org.cancelPolicy ? "text-foreground" : "text-muted-foreground italic"}`}
+            >
+              {org.cancelPolicy ?? "N/A"}
+            </p>
+          </div>
         </div>
       ) : (
         /* ── Edit mode ── */
         <div className="space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <Field>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="flex flex-col gap-2">
               <FieldLabel>Minimum Notice</FieldLabel>
               <FieldDescription>
                 How far in advance customers must book
               </FieldDescription>
+
               <Select
                 value={String(draft.minLeadTimeMins)}
                 onValueChange={(v) =>
                   setDraft((p) => ({ ...p, minLeadTimeMins: Number(v) }))
                 }
               >
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue />
                 </SelectTrigger>
+
                 <SelectContent>
                   {MIN_LEAD_OPTIONS.map((o) => (
                     <SelectItem key={o.value} value={String(o.value)}>
@@ -136,20 +189,22 @@ const SettingsBookingPrefs = () => {
                   ))}
                 </SelectContent>
               </Select>
-            </Field>
+            </div>
 
-            <Field>
+            <div className="flex flex-col gap-2">
               <FieldLabel>Default Buffer</FieldLabel>
               <FieldDescription>Break time between bookings</FieldDescription>
+
               <Select
                 value={String(draft.bufferMins)}
                 onValueChange={(v) =>
                   setDraft((p) => ({ ...p, bufferMins: Number(v) }))
                 }
               >
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue />
                 </SelectTrigger>
+
                 <SelectContent>
                   {BUFFER_OPTIONS.map((o) => (
                     <SelectItem key={o.value} value={String(o.value)}>
@@ -158,20 +213,22 @@ const SettingsBookingPrefs = () => {
                   ))}
                 </SelectContent>
               </Select>
-            </Field>
+            </div>
 
-            <Field>
+            <div className="flex flex-col gap-2">
               <FieldLabel>Max Per Slot</FieldLabel>
               <FieldDescription>Bookings allowed at same time</FieldDescription>
+
               <Select
                 value={String(draft.maxPerSlot)}
                 onValueChange={(v) =>
                   setDraft((p) => ({ ...p, maxPerSlot: Number(v) }))
                 }
               >
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue />
                 </SelectTrigger>
+
                 <SelectContent>
                   {[1, 2, 3, 4, 5].map((n) => (
                     <SelectItem key={n} value={String(n)}>
@@ -180,7 +237,7 @@ const SettingsBookingPrefs = () => {
                   ))}
                 </SelectContent>
               </Select>
-            </Field>
+            </div>
           </div>
 
           <Field>

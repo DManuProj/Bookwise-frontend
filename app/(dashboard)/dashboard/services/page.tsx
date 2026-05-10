@@ -5,89 +5,24 @@ import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import ServiceCard from "@/components/dashboard/services/ServiceCard";
 import ServiceFormModal from "@/components/dashboard/services/ServiceFormModal";
-import type { Service } from "@/types";
+import type { Service, ServiceFormInputs } from "@/types";
 import ServicesStatsStrip from "@/components/dashboard/services/ServicesStatsStrip";
 import ServicesEmptyState from "@/components/dashboard/services/ServicesEmptyState";
-
-/* ── Placeholder data ── */
-const INITIAL_SERVICES: Service[] = [
-  {
-    id: "s1",
-    name: "Haircut",
-    duration: 45,
-    price: 35,
-    buffer: 10,
-    description: "Classic haircut including wash and style.",
-    isActive: true,
-  },
-  {
-    id: "s2",
-    name: "Deep Tissue Massage",
-    duration: 60,
-    price: 80,
-    buffer: 15,
-    description: "Therapeutic massage targeting deep muscle layers.",
-    isActive: true,
-  },
-  {
-    id: "s3",
-    name: "Manicure",
-    duration: 30,
-    price: 25,
-    buffer: 5,
-    description: "Full manicure with nail shaping and polish.",
-    isActive: true,
-  },
-  {
-    id: "s4",
-    name: "Swedish Massage",
-    duration: 60,
-    price: 70,
-    buffer: 15,
-    description: "Relaxing full body massage with long smooth strokes.",
-    isActive: true,
-  },
-  {
-    id: "s5",
-    name: "Beard Trim",
-    duration: 20,
-    price: 20,
-    buffer: 5,
-    description: "",
-    isActive: true,
-  },
-  {
-    id: "s6",
-    name: "Facial",
-    duration: 60,
-    price: 65,
-    buffer: 10,
-    description: "Deep cleansing facial treatment for all skin types.",
-    isActive: true,
-  },
-  {
-    id: "s7",
-    name: "Hot Stone Massage",
-    duration: 90,
-    price: 110,
-    buffer: 15,
-    description: "Relaxing massage using heated basalt stones.",
-    isActive: false,
-  },
-  {
-    id: "s8",
-    name: "Pedicure",
-    duration: 45,
-    price: 35,
-    buffer: 5,
-    description: "",
-    isActive: false,
-  },
-];
+import ServicesGridSkeleton from "@/components/dashboard/services/ServicesGridSkeleton";
+import {
+  useCreateService,
+  useDeleteService,
+  useServices,
+  useUpdateService,
+} from "@/hooks/api/useServices";
 
 /* ── Page ── */
 const ServicesPage = () => {
-  const [services, setServices] = useState<Service[]>(INITIAL_SERVICES);
+  const { data: services = [], isPending } = useServices();
+  const { mutate: createService, isPending: isCreating } = useCreateService();
+  const { mutate: updateService, isPending: isUpdating } = useUpdateService();
+  const { mutate: deleteService, isPending: isDeleting } = useDeleteService();
+
   const [modalOpen, setModalOpen] = useState(false);
   const [editService, setEditService] = useState<Service | null>(null);
 
@@ -107,24 +42,25 @@ const ServicesPage = () => {
   };
 
   const handleToggle = (id: string) => {
-    setServices((prev) =>
-      prev.map((s) => (s.id === id ? { ...s, isActive: !s.isActive } : s)),
-    );
+    const service = services.find((s) => s.id === id);
+    if (!service) return;
+    updateService({ id, data: { isActive: !service.isActive } });
   };
 
   const handleDelete = (id: string) => {
-    setServices((prev) => prev.filter((s) => s.id !== id));
+    deleteService(id);
   };
 
-  const handleSave = (data: Omit<Service, "id">) => {
+  const handleSave = (data: ServiceFormInputs) => {
     if (editService) {
-      // Edit existing
-      setServices((prev) =>
-        prev.map((s) => (s.id === editService.id ? { ...s, ...data } : s)),
+      updateService(
+        { id: editService.id, data },
+        { onSuccess: () => setModalOpen(false) },
       );
     } else {
-      // Add new
-      setServices((prev) => [...prev, { ...data, id: crypto.randomUUID() }]);
+      createService(data, {
+        onSuccess: () => setModalOpen(false),
+      });
     }
   };
 
@@ -148,7 +84,7 @@ const ServicesPage = () => {
       </div>
 
       {/* Stats */}
-      {services.length > 0 && (
+      {!isPending && services.length > 0 && (
         <ServicesStatsStrip
           total={services.length}
           active={active}
@@ -156,18 +92,20 @@ const ServicesPage = () => {
         />
       )}
 
-      {/* Grid or empty */}
-      {services.length > 0 ? (
+      {/* Grid, skeleton, or empty */}
+      {isPending ? (
+        <ServicesGridSkeleton />
+      ) : services.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {services.map((service, index) => (
+          {services.map((service) => (
             <ServiceCard
               key={service.id}
               service={service}
-              index={index}
               currency="$"
               onEdit={handleEdit}
               onToggle={handleToggle}
               onDelete={handleDelete}
+              isLoading={isCreating || isUpdating || isDeleting}
             />
           ))}
         </div>
@@ -182,6 +120,7 @@ const ServicesPage = () => {
         onSave={handleSave}
         editService={editService}
         currency="$"
+        isSubmitting={isCreating || isUpdating}
       />
     </div>
   );

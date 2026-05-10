@@ -1,7 +1,7 @@
-import { OrgData } from "@/types";
+import { Organisation, OrgData } from "@/types";
 import BookingFlow from "@/components/booking/BookingFlow";
 
-const ORG_DATA: OrgData = {
+const ORG_DATA: Organisation = {
   name: "Glow Beauty Studio",
   slug: "glow-beauty",
   description:
@@ -9,8 +9,6 @@ const ORG_DATA: OrgData = {
   phone: "+1 555 0200",
   address: "456 Park Ave, New York, NY 10022",
   logo: null,
-  currency: "$",
-  voiceAiEnabled: true,
   services: [
     {
       id: "s1",

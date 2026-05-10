@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -19,24 +19,22 @@ import {
   SelectItem,
   SelectTrigger,
 } from "@/components/ui/select";
-import {
-  Field,
-  FieldError,
-  FieldLabel,
-  FieldDescription,
-} from "@/components/ui/field";
+import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Mail, ShieldCheck, User, Loader2, Send, Info } from "lucide-react";
+import type { SendInvitation } from "@/types";
 
 /* ── Schema ── */
 const inviteSchema = z.object({
-  name: z.string().min(2, "Display name is required"),
+  firstName: z.string().min(1, "First name is required"),
+  lastName: z.string().min(1, "Last name is required"),
   email: z.string().min(1, "Email is required").email("Enter a valid email"),
-  role: z.enum(["ADMIN", "MEMBER"], { required_error: "Please select a role" }),
+  role: z.enum(["ADMIN", "MEMBER"], {
+    required_error: "Please select a role",
+  }),
 });
 
 type FormValues = z.infer<typeof inviteSchema>;
-
 type RoleType = "ADMIN" | "MEMBER";
 
 const roleOptions: {
@@ -62,52 +60,55 @@ const roleOptions: {
   },
 ];
 
-/* ── Props ── */
 type Props = {
   open: boolean;
   onClose: () => void;
-  onInvite: (email: string, role: RoleType) => void;
+  onInvite: (data: SendInvitation) => void;
+  isSubmitting: boolean;
 };
 
-const InviteStaffModal = ({ open, onClose, onInvite }: Props) => {
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [role, setRole] = useState<RoleType>("MEMBER");
-
-  console.log("role", role);
-
+const InviteStaffModal = ({ open, onClose, onInvite, isSubmitting }: Props) => {
   const {
     register,
     handleSubmit,
     setValue,
     reset,
+    watch,
     formState: { errors },
   } = useForm<FormValues>({
     resolver: zodResolver(inviteSchema),
     mode: "onSubmit",
     reValidateMode: "onChange",
-    defaultValues: { name: "", email: "", role: "MEMBER" },
+    defaultValues: {
+      firstName: "",
+      lastName: "",
+      email: "",
+      role: "MEMBER",
+    },
   });
 
+  const role = watch("role");
   const selectedRole = roleOptions.find((item) => item.value === role);
 
+  // Reset form when modal opens
+  useEffect(() => {
+    if (open) {
+      reset({
+        firstName: "",
+        lastName: "",
+        email: "",
+        role: "MEMBER",
+      });
+    }
+  }, [open, reset]);
+
   const handleClose = () => {
-    reset();
-    setRole("MEMBER");
     onClose();
   };
 
-  const onSubmit = async (values: FormValues) => {
-    setIsSubmitting(true);
-    try {
-      // TODO: POST /api/staff/invite
-      await new Promise((res) => setTimeout(res, 900));
-      onInvite(values.email, values.role);
-      handleClose();
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setIsSubmitting(false);
-    }
+  const onSubmit = (values: FormValues) => {
+    onInvite(values);
+    // Don't close here — parent closes on mutation success
   };
 
   return (
@@ -126,23 +127,29 @@ const InviteStaffModal = ({ open, onClose, onInvite }: Props) => {
             onSubmit={handleSubmit(onSubmit)}
             className="space-y-4"
           >
-            <Field>
-              <FieldLabel>Display Name *</FieldLabel>
-              <FieldDescription>
-                How this person appears in your dashboard
-              </FieldDescription>
-              <div className="relative">
-                <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+            {/* Name */}
+            <div className="grid grid-cols-2 gap-3">
+              <Field>
+                <FieldLabel>First Name *</FieldLabel>
                 <Input
-                  placeholder="e.g. James"
-                  className="pl-9"
-                  aria-invalid={!!errors.name}
-                  {...register("name")}
+                  placeholder="James"
+                  aria-invalid={!!errors.firstName}
+                  {...register("firstName")}
                 />
-              </div>
-              <FieldError errors={[errors.name]} />
-            </Field>
+                <FieldError errors={[errors.firstName]} />
+              </Field>
+              <Field>
+                <FieldLabel>Last Name *</FieldLabel>
+                <Input
+                  placeholder="Wilson"
+                  aria-invalid={!!errors.lastName}
+                  {...register("lastName")}
+                />
+                <FieldError errors={[errors.lastName]} />
+              </Field>
+            </div>
 
+            {/* Email */}
             <Field>
               <FieldLabel>Email Address *</FieldLabel>
               <div className="relative">
@@ -158,25 +165,23 @@ const InviteStaffModal = ({ open, onClose, onInvite }: Props) => {
               <FieldError errors={[errors.email]} />
             </Field>
 
+            {/* Role */}
             <Field>
               <FieldLabel>Role *</FieldLabel>
               <Select
                 value={role}
-                onValueChange={(val: RoleType) => {
-                  setRole(val);
-                  setValue("role", val, { shouldValidate: true });
-                }}
+                onValueChange={(val: RoleType) =>
+                  setValue("role", val, { shouldValidate: true })
+                }
               >
                 <SelectTrigger aria-invalid={!!errors.role}>
                   <span className="text-sm">
                     {selectedRole ? selectedRole.label : "Select a role"}
                   </span>
                 </SelectTrigger>
-
                 <SelectContent>
                   {roleOptions.map((option) => {
                     const Icon = option.icon;
-
                     return (
                       <SelectItem key={option.value} value={option.value}>
                         <div className="flex items-start gap-2">

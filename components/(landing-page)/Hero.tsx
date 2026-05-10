@@ -13,9 +13,69 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { BUSINESS_TYPES } from "@/lib/countries";
+import { useMe } from "@/hooks/api/useMe";
 
 const Hero = () => {
+  const { data: me, isLoading } = useMe();
+
   const { isSignedIn, isLoaded } = useAuth();
+
+  const ButtonSection = () => {
+    // Still loading me data
+    if (isLoading || !me) {
+      return (
+        <div className="flex items-center gap-4">
+          <div className="h-12 w-40 rounded-xl bg-brand-800/50 animate-pulse" />
+        </div>
+      );
+    }
+
+    // OWNER + onboarding incomplete
+    if (me.role === "OWNER" && !me.onboardingComplete) {
+      return (
+        <Button
+          size="lg"
+          className="bg-brand-500 hover:bg-brand-600 text-white px-8 py-6 text-base font-semibold rounded-xl shadow-lg shadow-brand-500/25"
+          asChild
+        >
+          <Link href="/onboarding">
+            Continue Setup
+            <ArrowRight className="ml-2 h-4 w-4" />
+          </Link>
+        </Button>
+      );
+    }
+
+    // STAFF + profile incomplete
+    if (me.role !== "OWNER" && !me.profileComplete) {
+      return (
+        <Button
+          size="lg"
+          className="bg-brand-500 hover:bg-brand-600 text-white px-8 py-6 text-base font-semibold rounded-xl shadow-lg shadow-brand-500/25"
+          asChild
+        >
+          <Link href="/profile/setup">
+            Complete Profile
+            <ArrowRight className="ml-2 h-4 w-4" />
+          </Link>
+        </Button>
+      );
+    }
+
+    // Fully set up
+    return (
+      <Button
+        size="lg"
+        className="bg-brand-500 hover:bg-brand-600 text-white px-8 py-6 text-base font-semibold rounded-xl shadow-lg shadow-brand-500/25"
+        asChild
+      >
+        <Link href="/dashboard">
+          Go to Dashboard
+          <ArrowRight className="ml-2 h-4 w-4" />
+        </Link>
+      </Button>
+    );
+  };
 
   return (
     <section className="relative min-h-screen flex items-center overflow-hidden bg-section">
@@ -80,25 +140,15 @@ const Hero = () => {
                   </Button>
                 </SignUpButton>
                 <Button
-                  // variant="outline"
                   size="lg"
-                  className="px-8 py-6 text-base rounded-xl border border-teal-600 transition-all duration-200 hover:border-teal-700! "
+                  className="px-8 py-6 text-base rounded-xl border border-teal-600 transition-all duration-200 hover:border-teal-700!"
                   asChild
                 >
                   <a href="#how-it-works">See How It Works</a>
                 </Button>
               </>
             ) : (
-              <Button
-                size="lg"
-                className="bg-brand-500 hover:bg-brand-600 text-white px-8 py-6 text-base font-semibold rounded-xl shadow-lg shadow-brand-500/25"
-                asChild
-              >
-                <Link href="/dashboard">
-                  Go to Dashboard
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Link>
-              </Button>
+              <ButtonSection />
             )}
           </div>
 

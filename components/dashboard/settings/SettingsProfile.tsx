@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -10,20 +10,32 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { User, Phone } from "lucide-react";
 import SettingsCard from "@/components/dashboard/settings/SettingsCard";
+import { useMe, useUpdateMe } from "@/hooks/api/useMe";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const schema = z.object({
   firstName: z.string().min(1, "First name is required"),
   lastName: z.string().min(1, "Last name is required"),
-  phone: z.string().min(7, "Enter a valid phone number"),
+  phone: z
+    .string()
+    .refine(
+      (val) => val === "" || /^[+\d\s\-(). ]+$/.test(val),
+      "Phone can only contain digits, spaces, +, -, (, and )",
+    )
+    .refine(
+      (val) => val === "" || val.replace(/\D/g, "").length >= 7,
+      "Enter a valid phone number (at least 7 digits)",
+    ),
 });
 
 type FormValues = z.infer<typeof schema>;
 
 const SettingsProfile = () => {
   const { user } = useUser();
+  const { data: me, isLoading } = useMe();
+  const { mutate: updateMe, isPending } = useUpdateMe();
+
   const [isEditing, setIsEditing] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [savedPhone, setSavedPhone] = useState("+1 555 0100");
 
   const initials = user?.fullName
     ? user.fullName
@@ -44,39 +56,65 @@ const SettingsProfile = () => {
     resolver: zodResolver(schema),
     mode: "onTouched",
     reValidateMode: "onChange",
-    defaultValues: {
-      firstName: user?.firstName ?? "",
-      lastName: user?.lastName ?? "",
-      phone: savedPhone,
-    },
   });
+
+  useEffect(() => {
+    if (!me) return;
+    reset({
+      firstName: me?.firstName ?? "",
+      lastName: me?.lastName ?? "",
+      phone: me?.phone ?? "",
+    });
+  }, [me, reset]);
+
+  if (isLoading || !me)
+    return (
+      <SettingsCard
+        title="My Profile"
+        description="Your personal details and contact info"
+        isLoading={isLoading}
+      >
+        <div className="space-y-4">
+          <div className="flex items-center gap-4">
+            <Skeleton className="w-14 h-14 rounded-2xl shrink-0" />
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-40" />
+              <Skeleton className="h-3 w-24" />
+            </div>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+            <div className="space-y-1">
+              <Skeleton className="h-3 w-10" />
+              <Skeleton className="h-4 w-32" />
+            </div>
+            <div className="space-y-1">
+              <Skeleton className="h-3 w-16" />
+              <Skeleton className="h-4 w-48" />
+            </div>
+          </div>
+        </div>
+      </SettingsCard>
+    );
 
   const watched = watch();
   const isDirty =
-    watched.firstName !== (user?.firstName ?? "") ||
-    watched.lastName !== (user?.lastName ?? "") ||
-    watched.phone !== savedPhone;
+    watched.firstName !== (me?.firstName ?? "") ||
+    watched.lastName !== (me?.lastName ?? "") ||
+    watched.phone !== (me.phone ?? "");
 
   const handleCancel = () => {
     reset({
-      firstName: user?.firstName ?? "",
-      lastName: user?.lastName ?? "",
-      phone: savedPhone,
+      firstName: me.firstName ?? "",
+      lastName: me.lastName ?? "",
+      phone: me.phone ?? "",
     });
     setIsEditing(false);
   };
 
   const onSubmit = async (values: FormValues) => {
-    setIsSubmitting(true);
-    try {
-      // TODO: PUT /api/me
-      await new Promise((res) => setTimeout(res, 800));
-      setSavedPhone(values.phone);
-      reset(values);
-      setIsEditing(false);
-    } finally {
-      setIsSubmitting(false);
-    }
+    updateMe(values, {
+      onSuccess: () => setIsEditing(false),
+    });
   };
 
   return (
@@ -84,7 +122,7 @@ const SettingsProfile = () => {
       title="My Profile"
       description="Your personal details and contact info"
       isEditing={isEditing}
-      isSubmitting={isSubmitting}
+      isSubmitting={isPending}
       isDirty={isDirty}
       onEdit={() => setIsEditing(true)}
       onCancel={handleCancel}
@@ -100,7 +138,7 @@ const SettingsProfile = () => {
         </Avatar>
         <div>
           <p className="text-sm font-semibold text-foreground">
-            {user?.fullName ?? "—"}
+            {`${me?.firstName ?? "—"} ${me?.lastName ?? "—"} `}
           </p>
           <p className="text-xs text-muted-foreground mt-0.5">
             {user?.primaryEmailAddress?.emailAddress}
@@ -115,9 +153,9 @@ const SettingsProfile = () => {
         /* ── Read-only ── */
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {[
-            { label: "First Name", value: user?.firstName ?? "—" },
-            { label: "Last Name", value: user?.lastName ?? "—" },
-            { label: "Phone", value: savedPhone },
+            { label: "First Name", value: me?.firstName ?? "—" },
+            { label: "Last Name", value: me?.lastName ?? "—" },
+            { label: "Phone", value: me.phone ?? "N/A" },
           ].map(({ label, value }) => (
             <div key={label}>
               <p className="text-xs text-muted-foreground mb-0.5">{label}</p>
@@ -151,7 +189,7 @@ const SettingsProfile = () => {
             </Field>
           </div>
           <Field>
-            <FieldLabel>Phone *</FieldLabel>
+            <FieldLabel>Phone</FieldLabel>
             <div className="relative">
               <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
               <Input

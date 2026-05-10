@@ -21,7 +21,7 @@ const InviteExpiredState = ({ invite }: Props) => (
         <p className="text-sm text-muted-foreground mb-6 leading-relaxed">
           This invitation to join{" "}
           <span className="font-semibold text-foreground">
-            {invite.businessName}
+            {invite.orgName}
           </span>{" "}
           has expired. Please ask{" "}
           <span className="font-semibold text-foreground">

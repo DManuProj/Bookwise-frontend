@@ -19,8 +19,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
-import { RoleEnum } from "@/types";
-import type { Step3Data, StaffMember } from "@/types";
+import { StaffFormInputs, staffSchema } from "@/types";
 import {
   ArrowRight,
   ArrowLeft,
@@ -31,18 +30,9 @@ import {
   AlertCircle,
 } from "lucide-react";
 
-/* ── Zod schema ── */
-const staffMemberSchema = z.object({
-  id: z.string(),
-  name: z.string().min(1, "Name is required"),
-  email: z.string().min(1, "Email is required").email("Enter a valid email"),
-  role: RoleEnum,
-  isOwner: z.boolean(),
-});
-
 const staffFormSchema = z
   .object({
-    staff: z.array(staffMemberSchema),
+    staff: z.array(staffSchema),
   })
   .superRefine((data, ctx) => {
     const emails = data.staff.map((s) => s.email.toLowerCase().trim());
@@ -61,8 +51,8 @@ type StaffFormValues = z.infer<typeof staffFormSchema>;
 
 /* ── Props ── */
 type Props = {
-  initialData: Step3Data | null;
-  onComplete: (data: Step3Data) => void;
+  initialData: StaffFormInputs[];
+  onComplete: (staff: StaffFormInputs[]) => void;
   onBack: () => void;
 };
 
@@ -71,12 +61,13 @@ const OnboardingStaff = ({ initialData, onComplete, onBack }: Props) => {
   const { user } = useUser();
 
   const [addedSelf, setAddedSelf] = useState(
-    initialData?.staff.some((s) => s.isOwner) ?? false,
+    initialData.some((s) => s.isOwner) ?? false,
   );
 
-  const ownerMember: StaffMember = {
+  const ownerMember: StaffFormInputs = {
     id: "owner",
-    name: user?.fullName ?? user?.firstName ?? "",
+    firstName: user?.firstName ?? "",
+    lastName: user?.lastName ?? "",
     email: user?.primaryEmailAddress?.emailAddress ?? "",
     role: "OWNER",
     isOwner: true,
@@ -92,7 +83,7 @@ const OnboardingStaff = ({ initialData, onComplete, onBack }: Props) => {
   } = useForm<StaffFormValues>({
     resolver: zodResolver(staffFormSchema),
     defaultValues: {
-      staff: initialData?.staff ?? [],
+      staff: initialData,
     },
   });
 
@@ -119,7 +110,8 @@ const OnboardingStaff = ({ initialData, onComplete, onBack }: Props) => {
   const handleAdd = () => {
     append({
       id: crypto.randomUUID(),
-      name: "",
+      firstName: "",
+      lastName: "",
       email: "",
       role: "MEMBER",
       isOwner: false,
@@ -128,7 +120,7 @@ const OnboardingStaff = ({ initialData, onComplete, onBack }: Props) => {
 
   /* ── Submit ── */
   const onSubmit = (values: StaffFormValues) => {
-    onComplete({ staff: values.staff });
+    onComplete(values.staff);
   };
 
   const hasNoStaff = fields.length === 0;
@@ -237,18 +229,49 @@ const OnboardingStaff = ({ initialData, onComplete, onBack }: Props) => {
                     <Field>
                       <FieldLabel>
                         <Label className="text-xs font-medium text-muted-foreground">
-                          Display Name *
+                          First Name *
                         </Label>
                       </FieldLabel>
                       <Input
-                        placeholder="e.g. James"
-                        aria-invalid={!!errors.staff?.[index]?.name}
-                        {...register(`staff.${index}.name`)}
+                        placeholder="James"
+                        aria-invalid={!!errors.staff?.[index]?.firstName}
+                        {...register(`staff.${index}.firstName`)}
                       />
                       <FieldError
                         errors={
-                          errors.staff?.[index]?.name
-                            ? [{ message: errors.staff[index].name?.message }]
+                          errors.staff?.[index]?.firstName
+                            ? [
+                                {
+                                  message:
+                                    errors.staff[index].firstName?.message,
+                                },
+                              ]
+                            : []
+                        }
+                      />
+                    </Field>
+
+                    {/* Last Name */}
+                    <Field>
+                      <FieldLabel>
+                        <Label className="text-xs font-medium text-muted-foreground">
+                          Last Name *
+                        </Label>
+                      </FieldLabel>
+                      <Input
+                        placeholder="Smith"
+                        aria-invalid={!!errors.staff?.[index]?.lastName}
+                        {...register(`staff.${index}.lastName`)}
+                      />
+                      <FieldError
+                        errors={
+                          errors.staff?.[index]?.lastName
+                            ? [
+                                {
+                                  message:
+                                    errors.staff[index].lastName?.message,
+                                },
+                              ]
                             : []
                         }
                       />

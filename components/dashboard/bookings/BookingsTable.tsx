@@ -18,26 +18,8 @@ import {
   Phone,
 } from "lucide-react";
 import BookingRowActions from "@/components/dashboard/bookings/BookingRowActions";
-
-/* ── Types ── */
-export type BookingStatus =
-  | "pending"
-  | "confirmed"
-  | "completed"
-  | "cancelled"
-  | "no_show";
-export type BookingSource = "manual_customer" | "voice_ai" | "manual_dashboard";
-
-export type Booking = {
-  id: string;
-  customer: { name: string; phone: string };
-  service: { name: string; duration: number };
-  date: string;
-  time: string;
-  staff: string | null;
-  source: BookingSource;
-  status: BookingStatus;
-};
+import { Booking, BookingSource, BookingStatus } from "@/types";
+import { isToday, isTomorrow, isYesterday, format } from "date-fns";
 
 /* ── Config ── */
 const STATUS_CONFIG: Record<
@@ -48,30 +30,35 @@ const STATUS_CONFIG: Record<
     icon: React.ElementType;
   }
 > = {
-  pending: {
+  PENDING: {
     label: "Pending",
     icon: CircleDot,
     className: "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-0",
   },
-  confirmed: {
+  CONFIRMED: {
     label: "Confirmed",
     icon: CheckCircle2,
     className: "bg-brand-500/10 text-brand-600 dark:text-brand-400 border-0",
   },
-  completed: {
+  COMPLETED: {
     label: "Completed",
     icon: CheckCircle2,
     className: "bg-slate-500/10 text-slate-500 dark:text-slate-400 border-0",
   },
-  cancelled: {
+  CANCELLED: {
     label: "Cancelled",
     icon: XCircle,
     className: "bg-red-500/10   text-red-600   dark:text-red-400   border-0",
   },
-  no_show: {
+  NO_SHOW: {
     label: "No Show",
     icon: XCircle,
     className: "bg-rose-500/10  text-rose-600  dark:text-rose-400  border-0",
+  },
+  RESCHEDULED: {
+    label: "Rescheduled",
+    icon: CircleDot,
+    className: "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-0",
   },
 };
 
@@ -83,130 +70,32 @@ const SOURCE_CONFIG: Record<
     className: string;
   }
 > = {
-  manual_customer: {
+  MANUAL_CUSTOMER: {
     label: "Online",
     icon: MousePointer,
     className: "text-blue-500",
   },
-  voice_ai: { label: "Voice AI", icon: Bot, className: "text-violet-500" },
-  manual_dashboard: {
+  VOICE_AI: { label: "Voice AI", icon: Bot, className: "text-violet-500" },
+  MANUAL_DASHBOARD: {
     label: "Manual",
     icon: Phone,
     className: "text-slate-500",
   },
 };
 
-/* ── Placeholder data ── */
-export const BOOKINGS: Booking[] = [
-  {
-    id: "bk001",
-    customer: { name: "Sarah Johnson", phone: "+1 555 0101" },
-    service: { name: "Haircut", duration: 45 },
-    date: "Today",
-    time: "9:00 AM",
-    staff: "James",
-    source: "manual_customer",
-    status: "confirmed",
-  },
-  {
-    id: "bk002",
-    customer: { name: "Mike Chen", phone: "+1 555 0102" },
-    service: { name: "Deep Tissue Massage", duration: 60 },
-    date: "Today",
-    time: "10:30 AM",
-    staff: null,
-    source: "voice_ai",
-    status: "pending",
-  },
-  {
-    id: "bk003",
-    customer: { name: "Emma Williams", phone: "+1 555 0103" },
-    service: { name: "Manicure", duration: 30 },
-    date: "Today",
-    time: "11:00 AM",
-    staff: "Anna",
-    source: "manual_customer",
-    status: "confirmed",
-  },
-  {
-    id: "bk004",
-    customer: { name: "David Brown", phone: "+1 555 0104" },
-    service: { name: "Haircut", duration: 45 },
-    date: "Today",
-    time: "2:00 PM",
-    staff: "You",
-    source: "manual_dashboard",
-    status: "pending",
-  },
-  {
-    id: "bk005",
-    customer: { name: "Lisa Anderson", phone: "+1 555 0105" },
-    service: { name: "Swedish Massage", duration: 60 },
-    date: "Today",
-    time: "3:30 PM",
-    staff: "Anna",
-    source: "voice_ai",
-    status: "confirmed",
-  },
-  {
-    id: "bk006",
-    customer: { name: "Tom Harris", phone: "+1 555 0106" },
-    service: { name: "Beard Trim", duration: 20 },
-    date: "Tomorrow",
-    time: "9:00 AM",
-    staff: "James",
-    source: "manual_customer",
-    status: "confirmed",
-  },
-  {
-    id: "bk007",
-    customer: { name: "Rachel Green", phone: "+1 555 0107" },
-    service: { name: "Facial", duration: 60 },
-    date: "Tomorrow",
-    time: "11:30 AM",
-    staff: null,
-    source: "voice_ai",
-    status: "pending",
-  },
-  {
-    id: "bk008",
-    customer: { name: "James Miller", phone: "+1 555 0108" },
-    service: { name: "Haircut", duration: 45 },
-    date: "Yesterday",
-    time: "2:00 PM",
-    staff: "James",
-    source: "manual_customer",
-    status: "completed",
-  },
-  {
-    id: "bk009",
-    customer: { name: "Olivia Wilson", phone: "+1 555 0109" },
-    service: { name: "Deep Tissue Massage", duration: 60 },
-    date: "Yesterday",
-    time: "4:00 PM",
-    staff: "Anna",
-    source: "voice_ai",
-    status: "no_show",
-  },
-  {
-    id: "bk010",
-    customer: { name: "Chris Taylor", phone: "+1 555 0110" },
-    service: { name: "Manicure", duration: 30 },
-    date: "Mon 24",
-    time: "10:00 AM",
-    staff: "You",
-    source: "manual_dashboard",
-    status: "cancelled",
-  },
-];
-
-/* ── Component ── */
-type Props = {
-  bookings: Booking[];
-};
-
-const BookingsTable = ({ bookings }: Props) => {
+const BookingsTable = ({ bookings }: { bookings: Booking[] }) => {
   if (bookings.length === 0) return null;
+
+  /* ── Date/time formatters ── */
+  const formatBookingDate = (iso: string) => {
+    const date = new Date(iso);
+    if (isToday(date)) return "Today";
+    if (isTomorrow(date)) return "Tomorrow";
+    if (isYesterday(date)) return "Yesterday";
+    return format(date, "EEE, MMM d");
+  };
+
+  const formatBookingTime = (iso: string) => format(new Date(iso), "h:mm a");
 
   return (
     <div className="rounded-xl border border-border overflow-hidden">
@@ -231,6 +120,10 @@ const BookingsTable = ({ bookings }: Props) => {
             const StatusIcon = status.icon;
             const SourceIcon = source.icon;
 
+            const staffName = booking.user
+              ? `${booking.user.firstName} ${booking.user.lastName}`
+              : null;
+
             return (
               <TableRow
                 key={booking.id}
@@ -239,37 +132,37 @@ const BookingsTable = ({ bookings }: Props) => {
                 {/* Customer */}
                 <TableCell className="px-6 py-3">
                   <p className="text-sm font-medium text-foreground">
-                    {booking.customer.name}
+                    {booking.customer?.name ?? "—"}
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    {booking.customer.phone}
+                    {booking.customer?.phone ?? "—"}
                   </p>
                 </TableCell>
 
                 {/* Service */}
                 <TableCell className="py-3">
                   <p className="text-sm text-foreground">
-                    {booking.service.name}
+                    {booking.service?.name ?? "—"}
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    {booking.service.duration}min
+                    {booking.service?.durationMins ?? 0}min
                   </p>
                 </TableCell>
 
                 {/* Date & Time */}
                 <TableCell className="py-3">
                   <p className="text-sm font-medium text-foreground">
-                    {booking.time}
+                    {formatBookingTime(booking.startAt)}
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    {booking.date}
+                    {formatBookingDate(booking.startAt)}
                   </p>
                 </TableCell>
 
                 {/* Staff */}
                 <TableCell className="py-3">
-                  {booking.staff ? (
-                    <p className="text-sm text-foreground">{booking.staff}</p>
+                  {staffName ? (
+                    <p className="text-sm text-foreground">{staffName}</p>
                   ) : (
                     <span className="text-xs text-amber-600 dark:text-amber-400 font-medium">
                       Unassigned
@@ -299,10 +192,7 @@ const BookingsTable = ({ bookings }: Props) => {
 
                 {/* Actions */}
                 <TableCell className="py-3 pr-4">
-                  <BookingRowActions
-                    status={booking.status}
-                    bookingId={booking.id}
-                  />
+                  <BookingRowActions booking={booking} />
                 </TableCell>
               </TableRow>
             );

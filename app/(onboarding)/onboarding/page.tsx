@@ -7,18 +7,20 @@ import OnboardingStaff from "@/components/onboarding/OnboardingStaff";
 import OnboardingWorkingHours from "@/components/onboarding/OnboardingWorkingHours";
 import OnboardingReview from "@/components/onboarding/OnboardingReview";
 import { useState } from "react";
-import type {
-  Step1Data,
-  Step2Data,
-  Step3Data,
-  Step4Data,
-  OnboardingData,
-  WorkingHourRow,
-} from "@/types";
+
 import { Check } from "lucide-react";
+import {
+  BusinessFormInputs,
+  OnboardingData,
+  ServiceFormInputs,
+  StaffFormInputs,
+  WorkingHour,
+} from "@/types";
+import { useRouter } from "next/navigation";
+import { useOnboarding } from "@/hooks/api/useOnboarding";
 
 /* ── Default working hours ── */
-const defaultWorkingHours: WorkingHourRow[] = [
+const defaultWorkingHours: WorkingHour[] = [
   { day: "MON", isOpen: true, openTime: "09:00", closeTime: "18:00" },
   { day: "TUE", isOpen: true, openTime: "09:00", closeTime: "18:00" },
   { day: "WED", isOpen: true, openTime: "09:00", closeTime: "18:00" },
@@ -42,25 +44,35 @@ const OnboardingPage = () => {
   const [currentStep, setCurrentStep] = useState<1 | 2 | 3 | 4 | 5>(1);
   const [cameFromReview, setCameFromReview] = useState(false);
   const [isDone, setIsDone] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const { mutate: submitOnboarding, isPending } = useOnboarding();
 
   const [formData, setFormData] = useState<OnboardingData>({
-    businessInfo: null,
-    businessHours: { workingHours: defaultWorkingHours },
-    staffData: { staff: [] },
-    services: { services: [] },
+    businessName: "",
+    slug: "",
+    businessType: "",
+    phone: "",
+    description: "",
+    country: "",
+    currency: "",
+    logo: null,
+    workingHours: defaultWorkingHours,
+    staff: [],
+    services: [],
   });
 
   /* ── Handlers ── */
-  const handleStep1Complete = (data: Step1Data) => {
-    setFormData((prev) => ({ ...prev, businessInfo: data }));
+  const handleStep1Complete = (
+    data: BusinessFormInputs & { logo: File | null },
+  ) => {
+    setFormData((prev) => ({ ...prev, ...data }));
     if (cameFromReview) {
       setCameFromReview(false);
       setCurrentStep(5);
     } else setCurrentStep(2);
   };
 
-  const handleStep2Complete = (data: Step2Data) => {
+  const handleStep2Complete = (data: WorkingHour[]) => {
     setFormData((prev) => ({ ...prev, workingHours: data }));
     if (cameFromReview) {
       setCameFromReview(false);
@@ -68,15 +80,15 @@ const OnboardingPage = () => {
     } else setCurrentStep(3);
   };
 
-  const handleStep3Complete = (data: Step3Data) => {
-    setFormData((prev) => ({ ...prev, team: data }));
+  const handleStep3Complete = (data: StaffFormInputs[]) => {
+    setFormData((prev) => ({ ...prev, staff: data }));
     if (cameFromReview) {
       setCameFromReview(false);
       setCurrentStep(5);
     } else setCurrentStep(4);
   };
 
-  const handleStep4Complete = (data: Step4Data) => {
+  const handleStep4Complete = (data: ServiceFormInputs[]) => {
     setFormData((prev) => ({ ...prev, services: data }));
     if (cameFromReview) {
       setCameFromReview(false);
@@ -85,16 +97,11 @@ const OnboardingPage = () => {
   };
 
   const handleConfirm = async () => {
-    setIsSubmitting(true);
-    try {
-      // TODO: await fetch("/api/onboarding", { method: "POST", body: JSON.stringify(formData) })
-      await new Promise((res) => setTimeout(res, 1500));
-      setIsDone(true);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setIsSubmitting(false);
-    }
+    submitOnboarding(formData, {
+      onSuccess: () => {
+        setIsDone(true);
+      },
+    });
   };
 
   const handleBack = () => {
@@ -107,9 +114,9 @@ const OnboardingPage = () => {
   if (isDone) {
     return (
       <DoneScreen
-        slug={formData.businessInfo?.slug ?? "your-business"}
-        businessName={formData.businessInfo?.businessName ?? "Your Business"}
-        staffCount={formData.staffData?.staff.length ?? 0}
+        slug={formData.slug || "your-business"}
+        businessName={formData.businessName || "Your Business"}
+        staffCount={formData.staff.length}
       />
     );
   }
@@ -168,20 +175,20 @@ const OnboardingPage = () => {
         <div className="w-full max-w-2xl">
           {currentStep === 1 && (
             <OnboardingBusinessInfo
-              initialData={formData.businessInfo}
+              initialData={formData}
               onComplete={handleStep1Complete}
             />
           )}
           {currentStep === 2 && (
             <OnboardingWorkingHours
-              initialData={formData.businessHours}
+              initialData={formData.workingHours}
               onComplete={handleStep2Complete}
               onBack={handleBack}
             />
           )}
           {currentStep === 3 && (
             <OnboardingStaff
-              initialData={formData.staffData}
+              initialData={formData.staff}
               onComplete={handleStep3Complete}
               onBack={handleBack}
             />
@@ -189,10 +196,10 @@ const OnboardingPage = () => {
           {currentStep === 4 && (
             <OnboardingServices
               initialData={formData.services}
-              currency={formData.businessInfo?.currency ?? "USD"}
+              currency={formData.currency || "USD"}
               onComplete={handleStep4Complete}
               onBack={handleBack}
-              isSubmitting={isSubmitting}
+              isSubmitting={isPending}
             />
           )}
           {currentStep === 5 && (
@@ -204,7 +211,7 @@ const OnboardingPage = () => {
               }}
               onConfirm={handleConfirm}
               onBack={handleBack}
-              isSubmitting={isSubmitting}
+              isSubmitting={isPending}
             />
           )}
         </div>

@@ -1,7 +1,6 @@
 "use client";
 
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
+import { useEffect, useState } from "react";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import {
@@ -11,10 +10,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import type { WorkingHourRow } from "@/types";
 import SettingsCard from "@/components/dashboard/settings/SettingsCard";
+import { WorkingHour } from "@/types";
+import {
+  useOrganisation,
+  useUpdateWorkingHours,
+} from "@/hooks/api/useOrganisation";
+import { Skeleton } from "@/components/ui/skeleton";
 
-const DAYS: { key: WorkingHourRow["day"]; label: string }[] = [
+const DAYS: { key: WorkingHour["day"]; label: string }[] = [
   { key: "MON", label: "Monday" },
   { key: "TUE", label: "Tuesday" },
   { key: "WED", label: "Wednesday" },
@@ -39,16 +43,6 @@ const TIME_OPTIONS = Array.from({ length: 48 }, (_, i) => {
 const fmt = (t: string) =>
   TIME_OPTIONS.find((o) => o.value === t)?.display ?? t;
 
-const DEFAULT_HOURS: WorkingHourRow[] = [
-  { day: "MON", isOpen: true, openTime: "09:00", closeTime: "18:00" },
-  { day: "TUE", isOpen: true, openTime: "09:00", closeTime: "18:00" },
-  { day: "WED", isOpen: true, openTime: "09:00", closeTime: "18:00" },
-  { day: "THU", isOpen: true, openTime: "09:00", closeTime: "18:00" },
-  { day: "FRI", isOpen: true, openTime: "09:00", closeTime: "18:00" },
-  { day: "SAT", isOpen: true, openTime: "09:00", closeTime: "14:00" },
-  { day: "SUN", isOpen: false, openTime: "09:00", closeTime: "17:00" },
-];
-
 const TimeSelect = ({
   value,
   onChange,
@@ -71,16 +65,51 @@ const TimeSelect = ({
 );
 
 const SettingsWorkingHours = () => {
-  const [isEditing, setIsEditing] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [saved, setSaved] = useState<WorkingHourRow[]>(DEFAULT_HOURS);
-  const [draft, setDraft] = useState<WorkingHourRow[]>(DEFAULT_HOURS);
+  const { data: org, isLoading } = useOrganisation();
 
-  const isDirty = JSON.stringify(draft) !== JSON.stringify(saved);
+  const { mutate: updateHours, isPending } = useUpdateWorkingHours();
+  const [isEditing, setIsEditing] = useState(false);
+  const [draft, setDraft] = useState<WorkingHour[]>([]);
+
+  const isDirty = JSON.stringify(draft) !== JSON.stringify(org?.workingHours);
+
+  useEffect(() => {
+    if (!org?.workingHours) return;
+    setDraft(org.workingHours);
+  }, [org]);
+
+  if (isLoading || !org)
+    return (
+      <SettingsCard
+        title="Working Hours"
+        description="Customers can only book during these hours"
+        isLoading={isLoading}
+      >
+        <div className="space-y-4">
+          <div className="flex items-center gap-4">
+            <Skeleton className="w-14 h-14 rounded-2xl shrink-0" />
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-40" />
+              <Skeleton className="h-3 w-24" />
+            </div>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+            <div className="space-y-1">
+              <Skeleton className="h-3 w-10" />
+              <Skeleton className="h-4 w-32" />
+            </div>
+            <div className="space-y-1">
+              <Skeleton className="h-3 w-16" />
+              <Skeleton className="h-4 w-48" />
+            </div>
+          </div>
+        </div>
+      </SettingsCard>
+    );
 
   const updateRow = (
-    day: WorkingHourRow["day"],
-    field: keyof WorkingHourRow,
+    day: WorkingHour["day"],
+    field: keyof WorkingHour,
     value: string | boolean,
   ) =>
     setDraft((prev) =>
@@ -88,20 +117,14 @@ const SettingsWorkingHours = () => {
     );
 
   const handleCancel = () => {
-    setDraft(saved);
+    setDraft(org.workingHours);
     setIsEditing(false);
   };
 
   const handleSave = async () => {
-    setIsSubmitting(true);
-    try {
-      // TODO: PUT /api/organisation/working-hours
-      await new Promise((res) => setTimeout(res, 800));
-      setSaved(draft);
-      setIsEditing(false);
-    } finally {
-      setIsSubmitting(false);
-    }
+    updateHours(draft, {
+      onSuccess: () => setIsEditing(false),
+    });
   };
 
   return (
@@ -109,7 +132,8 @@ const SettingsWorkingHours = () => {
       title="Working Hours"
       description="Customers can only book during these hours"
       isEditing={isEditing}
-      isSubmitting={isSubmitting}
+      isLoading={isLoading}
+      isSubmitting={isPending}
       isDirty={isDirty}
       onEdit={() => setIsEditing(true)}
       onCancel={handleCancel}
@@ -118,7 +142,7 @@ const SettingsWorkingHours = () => {
       {!isEditing ? (
         /* ── Read-only ── */
         <div className="space-y-0">
-          {saved.map(({ day, isOpen, openTime, closeTime }) => {
+          {org.workingHours.map(({ day, isOpen, openTime, closeTime }) => {
             const label = DAYS.find((d) => d.key === day)?.label ?? day;
             return (
               <div

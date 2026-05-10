@@ -2,7 +2,6 @@
 
 import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import {
   Pagination,
   PaginationContent,
@@ -11,29 +10,108 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import { Plus } from "lucide-react";
-import BookingsStatsStrip from "@/components/dashboard/bookings/BookingsStatsStrip";
-import BookingsTable, {
-  BOOKINGS,
-} from "@/components/dashboard/bookings/BookingsTable";
-import BookingsEmptyState from "@/components/dashboard/bookings/BookingsEmptyState";
-import BookingsFilters, {
+import { useBookings } from "@/hooks/api/useBookings";
+import { useDebounce } from "@/hooks/useDebounce";
+import {
+  BookingsFilters as ApiFilters,
+  BookingStatus,
   FilterState,
-} from "@/components/dashboard/bookings/BookingsFilters";
+} from "@/types";
+import BookingsStatsStrip from "@/components/dashboard/bookings/BookingsStatsStrip";
+import BookingsTable from "@/components/dashboard/bookings/BookingsTable";
+import BookingsEmptyState from "@/components/dashboard/bookings/BookingsEmptyState";
+import BookingsFilters from "@/components/dashboard/bookings/BookingsFilters";
 import NewBookingModal from "@/components/dashboard/bookings/NewBookingModal";
+import BookingsTableSkeleton from "@/components/dashboard/bookings/BookingsTableSkeleton";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const DEFAULT_FILTERS: FilterState = {
   search: "",
   status: "all",
   date: "all",
   staff: "all",
+  page: 1,
+  pageSize: 10,
 };
 
-const PAGE_SIZE = 8;
+// Convert UI filter state → API params
+const buildApiFilters = (state: FilterState, search: string): ApiFilters => {
+  const apiFilters: ApiFilters = {
+    page: state.page,
+    limit: state.pageSize,
+  };
+
+  if (search.trim()) apiFilters.search = search.trim();
+  if (state.status !== "all") apiFilters.status = state.status as BookingStatus;
+  if (state.staff !== "all") apiFilters.staffId = state.staff;
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  switch (state.date) {
+    case "today": {
+      const end = new Date(today);
+      end.setHours(23, 59, 59, 999);
+      apiFilters.from = today.toISOString();
+      apiFilters.to = end.toISOString();
+      break;
+    }
+    case "tomorrow": {
+      const start = new Date(today);
+      start.setDate(start.getDate() + 1);
+      const end = new Date(start);
+      end.setHours(23, 59, 59, 999);
+      apiFilters.from = start.toISOString();
+      apiFilters.to = end.toISOString();
+      break;
+    }
+    case "week": {
+      const end = new Date(today);
+      end.setDate(end.getDate() + 7);
+      apiFilters.from = today.toISOString();
+      apiFilters.to = end.toISOString();
+      break;
+    }
+    case "month": {
+      const end = new Date(today);
+      end.setMonth(end.getMonth() + 1);
+      apiFilters.from = today.toISOString();
+      apiFilters.to = end.toISOString();
+      break;
+    }
+  }
+
+  return apiFilters;
+};
 
 const BookingsPage = () => {
   const [filters, setFilters] = useState<FilterState>(DEFAULT_FILTERS);
-  const [page, setPage] = useState(1);
   const [newBookingOpen, setNewBookingOpen] = useState(false);
+
+  //  Debounce search (don't fire API call on every keystroke)
+  const debouncedSearch = useDebounce(filters.search, 400);
+
+  //  Build API params, memoized so query key is stable
+  const apiFilters = useMemo(
+    () => buildApiFilters(filters, debouncedSearch),
+    [filters, debouncedSearch],
+  );
+
+  // Fetch — hook handles loading, caching, refetching
+  const { data, isPending, isFetching } = useBookings(apiFilters);
+  const isLoading = isPending;
+
+  //  Derived values
+  const bookings = data?.data ?? [];
+  const stats = data?.stats;
+  const total = data?.total ?? 0;
+  const totalPages = data?.totalPages ?? 1;
 
   const hasActiveFilters =
     filters.search !== "" ||
@@ -41,42 +119,16 @@ const BookingsPage = () => {
     filters.date !== "all" ||
     filters.staff !== "all";
 
-  const handleClear = () => {
-    setFilters(DEFAULT_FILTERS);
-    setPage(1);
+  //  Handlers — separate "filter changed" vs "page changed"
+  const updateFilters = (changes: Partial<FilterState>) => {
+    setFilters((prev) => ({ ...prev, ...changes, page: 1 }));
   };
 
-  /* ── Filter logic ── */
-  const filtered = useMemo(() => {
-    return BOOKINGS.filter((b) => {
-      const matchSearch =
-        filters.search === "" ||
-        b.customer.name.toLowerCase().includes(filters.search.toLowerCase()) ||
-        b.service.name.toLowerCase().includes(filters.search.toLowerCase());
+  const goToPage = (page: number) => {
+    setFilters((prev) => ({ ...prev, page }));
+  };
 
-      const matchStatus =
-        filters.status === "all" || b.status === filters.status;
-
-      const matchDate =
-        filters.date === "all" ||
-        (filters.date === "today" && b.date === "Today") ||
-        (filters.date === "tomorrow" && b.date === "Tomorrow") ||
-        (filters.date === "week" &&
-          ["Today", "Tomorrow", "Mon 24"].includes(b.date)) ||
-        (filters.date === "month" && true);
-
-      const matchStaff =
-        filters.staff === "all" ||
-        (filters.staff === "unassigned" && b.staff === null) ||
-        b.staff === filters.staff;
-
-      return matchSearch && matchStatus && matchDate && matchStaff;
-    });
-  }, [filters]);
-
-  /* ── Pagination ── */
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-  const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  const handleClear = () => setFilters(DEFAULT_FILTERS);
 
   return (
     <div className="p-6 lg:p-8 max-w-7xl mx-auto space-y-6">
@@ -89,10 +141,11 @@ const BookingsPage = () => {
           </p>
         </div>
         <Button
+          disabled={isLoading}
           className="bg-brand-500 hover:bg-brand-600 text-white rounded-lg h-11 shadow-sm shadow-brand-500/20"
           onClick={() => setNewBookingOpen(true)}
         >
-          <Plus className="h-4 w-4 " />
+          <Plus className="h-4 w-4" />
           Add New Booking
         </Button>
       </div>
@@ -100,26 +153,44 @@ const BookingsPage = () => {
       {/* Filters */}
       <BookingsFilters
         filters={filters}
-        onChange={(f) => {
-          setFilters(f);
-          setPage(1);
-        }}
+        onChange={(changes) => updateFilters(changes)}
         onClear={handleClear}
         hasActive={hasActiveFilters}
+        disabled={isLoading}
       />
 
       {/* Stats strip + count */}
       <div className="flex items-center justify-between flex-wrap gap-3">
-        <BookingsStatsStrip />
-        <span className="text-xs text-muted-foreground">
-          Showing {paginated.length} of {filtered.length} bookings
-        </span>
+        {stats && <BookingsStatsStrip stats={stats} />}
+
+        <div className="flex items-center gap-3">
+          <span className="text-xs text-muted-foreground">
+            Showing {bookings.length} of {total} bookings
+          </span>
+          <Select
+            disabled={isLoading}
+            value={filters.pageSize.toString()}
+            onValueChange={(v) => updateFilters({ pageSize: parseInt(v, 10) })}
+          >
+            <SelectTrigger className="h-9 w-36 whitespace-nowrap">
+              <SelectValue placeholder="Page size" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="5">5 per page</SelectItem>
+              <SelectItem value="10">10 per page</SelectItem>
+              <SelectItem value="20">20 per page</SelectItem>
+              <SelectItem value="50">50 per page</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
-      {/* Table card */}
+      {/* Table / skeleton */}
       <div>
-        {paginated.length > 0 ? (
-          <BookingsTable bookings={paginated} />
+        {isLoading ? (
+          <BookingsTableSkeleton rows={5} />
+        ) : bookings.length > 0 ? (
+          <BookingsTable bookings={bookings} />
         ) : (
           <BookingsEmptyState
             hasFilters={hasActiveFilters}
@@ -134,9 +205,9 @@ const BookingsPage = () => {
           <PaginationContent>
             <PaginationItem>
               <PaginationPrevious
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                onClick={() => goToPage(Math.max(1, filters.page - 1))}
                 className={
-                  page === 1
+                  filters.page === 1
                     ? "pointer-events-none opacity-50"
                     : "cursor-pointer"
                 }
@@ -144,14 +215,14 @@ const BookingsPage = () => {
             </PaginationItem>
             <PaginationItem>
               <span className="text-sm text-muted-foreground px-4">
-                Page {page} of {totalPages}
+                Page {filters.page} of {totalPages}
               </span>
             </PaginationItem>
             <PaginationItem>
               <PaginationNext
-                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                onClick={() => goToPage(Math.min(totalPages, filters.page + 1))}
                 className={
-                  page === totalPages
+                  filters.page === totalPages
                     ? "pointer-events-none opacity-50"
                     : "cursor-pointer"
                 }
@@ -160,6 +231,7 @@ const BookingsPage = () => {
           </PaginationContent>
         </Pagination>
       )}
+
       <NewBookingModal
         open={newBookingOpen}
         onClose={() => setNewBookingOpen(false)}

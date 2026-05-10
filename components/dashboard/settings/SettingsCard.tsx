@@ -7,24 +7,28 @@ import { Pencil, Loader2 } from "lucide-react";
 type Props = {
   title: string;
   description: string;
-  isEditing: boolean;
-  isSubmitting: boolean;
-  isDirty: boolean;
-  onEdit: () => void;
-  onCancel: () => void;
-  onSave: () => void;
+  isEditing?: boolean;
+  isLoading?: boolean;
+  isSubmitting?: boolean;
+  isDirty?: boolean;
+  onEdit?: () => void;
+  onCancel?: () => void;
+  onSave?: () => void;
   children: React.ReactNode;
 };
+
+const noop = () => {};
 
 const SettingsCard = ({
   title,
   description,
-  isEditing,
-  isSubmitting,
-  isDirty,
-  onEdit,
-  onCancel,
-  onSave,
+  isEditing = false,
+  isLoading = false,
+  isSubmitting = false,
+  isDirty = false,
+  onEdit = noop,
+  onCancel = noop,
+  onSave = noop,
   children,
 }: Props) => (
   <Card className="rounded-2xl border border-border bg-card overflow-hidden">
@@ -71,6 +75,7 @@ const SettingsCard = ({
             variant="ghost"
             size="sm"
             onClick={onEdit}
+            disabled={isLoading}
             className="h-8 px-3 text-xs text-muted-foreground hover:text-brand-600 dark:hover:text-brand-400"
           >
             <Pencil className="h-3.5 w-3.5 mr-1.5" />

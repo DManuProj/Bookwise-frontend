@@ -91,8 +91,7 @@ const OnboardingReview = ({
   onBack,
   isSubmitting,
 }: Props) => {
-  const { businessInfo, businessHours, staffData, services } = formData;
-  const currency = getCurrencyByCode(businessInfo?.currency ?? "");
+  const currency = getCurrencyByCode(formData.currency);
 
   return (
     <div>
@@ -109,70 +108,63 @@ const OnboardingReview = ({
       <div className="space-y-4">
         {/* ── Section 1: Business Info ── */}
         <Card className="border border-brand-500/25 dark:border-brand-500/15">
-          <CardContent className="px-6 py-3 ">
+          <CardContent className="px-6 py-3">
             <SectionHeader
               icon={Building2}
               title="Business Info"
               onEdit={() => onEdit(1)}
             />
 
-            {businessInfo ? (
-              <>
-                {/* Logo + name */}
-                <div className="flex items-center gap-4 mb-5 pb-5 border-b border-border">
-                  <div className="w-16 h-16 rounded-2xl bg-brand-500/10 flex items-center justify-center shrink-0 overflow-hidden border border-brand-500/20">
-                    {businessInfo.logo ? (
-                      <img
-                        src={URL.createObjectURL(businessInfo.logo)}
-                        alt="logo"
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <span className="text-lg font-bold text-brand-600 dark:text-brand-400">
-                        {businessInfo.businessName.slice(0, 2).toUpperCase()}
-                      </span>
-                    )}
-                  </div>
-                  <div>
-                    <p className="text-lg font-semibold text-foreground mb-1">
-                      {businessInfo.businessName}
-                    </p>
-                    <Badge
-                      variant="secondary"
-                      className="text-sm bg-brand-500/10 text-brand-600 dark:text-brand-400 border-0"
-                    >
-                      {businessInfo.businessType}
-                    </Badge>
-                  </div>
-                </div>
+            <div className="flex items-center gap-4 mb-5 pb-5 border-b border-border">
+              <div className="w-16 h-16 rounded-2xl bg-brand-500/10 flex items-center justify-center shrink-0 overflow-hidden border border-brand-500/20">
+                {formData.logo ? (
+                  <img
+                    src={URL.createObjectURL(formData.logo)}
+                    alt="logo"
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <span className="text-lg font-bold text-brand-600 dark:text-brand-400">
+                    {formData.businessName.slice(0, 2).toUpperCase() || "BW"}
+                  </span>
+                )}
+              </div>
+              <div>
+                <p className="text-lg font-semibold text-foreground mb-1">
+                  {formData.businessName}
+                </p>
+                <Badge
+                  variant="secondary"
+                  className="text-sm bg-brand-500/10 text-brand-600 dark:text-brand-400 border-0"
+                >
+                  {formData.businessType}
+                </Badge>
+              </div>
+            </div>
 
-                <div className="divide-y divide-border">
-                  <Row
-                    label="Booking URL"
-                    value={
-                      <span className="font-mono text-sm text-brand-600 dark:text-brand-400">
-                        bookwise.ai/book/{businessInfo.slug}
-                      </span>
-                    }
-                  />
-                  <Row label="Phone" value={businessInfo.phone} />
-                  <Row label="Country" value={businessInfo.country} />
-                  <Row
-                    label="Currency"
-                    value={
-                      currency
-                        ? `${currency.symbol} ${currency.name} (${currency.code})`
-                        : businessInfo.currency
-                    }
-                  />
-                  {businessInfo.description && (
-                    <Row label="Description" value={businessInfo.description} />
-                  )}
-                </div>
-              </>
-            ) : (
-              <p className="text-sm text-muted-foreground">Not filled yet</p>
-            )}
+            <div className="divide-y divide-border">
+              <Row
+                label="Booking URL"
+                value={
+                  <span className="font-mono text-sm text-brand-600 dark:text-brand-400">
+                    bookwise.ai/book/{formData.slug}
+                  </span>
+                }
+              />
+              <Row label="Phone" value={formData.phone} />
+              <Row label="Country" value={formData.country} />
+              <Row
+                label="Currency"
+                value={
+                  currency
+                    ? `${currency.symbol} ${currency.name} (${currency.code})`
+                    : formData.currency
+                }
+              />
+              {formData.description && (
+                <Row label="Description" value={formData.description} />
+              )}
+            </div>
           </CardContent>
         </Card>
 
@@ -185,9 +177,9 @@ const OnboardingReview = ({
               onEdit={() => onEdit(2)}
             />
 
-            {businessHours ? (
+            {formData.workingHours.length > 0 ? (
               <div className="space-y-0.5">
-                {businessHours.workingHours.map((row) => (
+                {formData.workingHours.map((row) => (
                   <div
                     key={row.day}
                     className="flex items-center justify-between py-2"
@@ -218,9 +210,9 @@ const OnboardingReview = ({
           <CardContent className="px-6 py-3 ">
             <SectionHeader icon={Users} title="Team" onEdit={() => onEdit(3)} />
 
-            {staffData && staffData.staff.length > 0 ? (
+            {formData.staff.length > 0 ? (
               <div className="space-y-4">
-                {staffData.staff.map((member) => (
+                {formData.staff.map((member) => (
                   <div
                     key={member.id}
                     className="flex items-center justify-between"
@@ -231,7 +223,7 @@ const OnboardingReview = ({
                       </div>
                       <div>
                         <p className="text-sm font-medium text-foreground">
-                          {member.name}
+                          {member.firstName} {member.lastName}
                         </p>
                         <p className="text-sm text-muted-foreground">
                           {member.email}
@@ -265,28 +257,26 @@ const OnboardingReview = ({
               onEdit={() => onEdit(4)}
             />
 
-            {services && services.services.length > 0 ? (
+            {formData.services.length > 0 ? (
               <div className="space-y-4">
-                {services.services.map((svc, i) => (
+                {formData.services.map((svc, i) => (
                   <div key={i}>
                     {i > 0 && <Separator className="mb-4" />}
 
-                    {/* Name + price */}
                     <div className="flex items-start justify-between gap-2 mb-2">
-                      <p className=" font-semibold ">{svc.name}</p>
-                      <span className=" font-semibold text-brand-600 dark:text-brand-400 shrink-0">
+                      <p className="font-semibold">{svc.name}</p>
+                      <span className="font-semibold text-brand-600 dark:text-brand-400 shrink-0">
                         {currency?.symbol ?? ""}
                         {svc.price}
                       </span>
                     </div>
 
-                    {/* Meta row */}
                     <div className="flex items-center gap-4 flex-wrap">
                       <span className="text-sm text-muted-foreground flex items-center gap-1.5">
                         <Clock className="h-3.5 w-3.5" />
-                        {svc.duration >= 60
-                          ? `${svc.duration / 60}h`
-                          : `${svc.duration}m`}
+                        {svc.durationMins >= 60
+                          ? `${svc.durationMins / 60}h`
+                          : `${svc.durationMins}m`}
                       </span>
                       {svc.buffer > 0 && (
                         <span className="text-sm text-muted-foreground">

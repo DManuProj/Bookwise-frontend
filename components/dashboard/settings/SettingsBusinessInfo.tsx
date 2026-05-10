@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -16,8 +16,13 @@ import {
 } from "@/components/ui/select";
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { BUSINESS_TYPES } from "@/lib/countries";
-import { Building2, Phone, Upload, X } from "lucide-react";
+import { Building2, MapPin, Phone, Upload, X } from "lucide-react";
 import SettingsCard from "@/components/dashboard/settings/SettingsCard";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  useOrganisation,
+  useUpdateOrganisation,
+} from "@/hooks/api/useOrganisation";
 
 const schema = z.object({
   businessName: z
@@ -25,28 +30,21 @@ const schema = z.object({
     .min(2, "Business name must be at least 2 characters"),
   phone: z.string().min(7, "Enter a valid phone number"),
   description: z.string().optional(),
+  address: z.string().optional(),
   businessType: z.string().min(1, "Please select a business type"),
 });
 
 type FormValues = z.infer<typeof schema>;
-type SavedData = FormValues & { logo: string | null };
-
-const INITIAL: SavedData = {
-  businessName: "John's Salon",
-  phone: "+1 555 0100",
-  description:
-    "A premium hair salon in downtown offering cuts, colour and styling.",
-  businessType: "Salon",
-  logo: null,
-};
 
 const SettingsBusinessInfo = () => {
+  const { data: org, isLoading } = useOrganisation();
+
+  const { mutate: updateOrg, isPending } = useUpdateOrganisation();
+
   const [isEditing, setIsEditing] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [saved, setSaved] = useState<SavedData>(INITIAL);
   const [logo, setLogo] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
-  const [businessType, setBusinessType] = useState(INITIAL.businessType);
+  const [businessType, setBusinessType] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const {
@@ -61,22 +59,72 @@ const SettingsBusinessInfo = () => {
     mode: "onTouched",
     reValidateMode: "onChange",
     defaultValues: {
-      businessName: INITIAL.businessName,
-      phone: INITIAL.phone,
-      description: INITIAL.description,
-      businessType: INITIAL.businessType,
+      businessName: "",
+      phone: "",
+      description: "",
+      address: "",
+      businessType: "",
     },
   });
 
+  //  Sync form with backend data once it loads
+  useEffect(() => {
+    if (!org) return;
+    reset({
+      businessName: org.name,
+      phone: org.phone ?? "",
+      description: org.description ?? "",
+      address: org.address ?? "",
+      businessType: org.businessType,
+    });
+    setBusinessType(org.businessType);
+    setLogoPreview(org.logo ?? null);
+  }, [org, reset]);
+
+  if (isLoading || !org)
+    return (
+      <SettingsCard
+        title="Business Info"
+        description="Appears on your public booking page"
+        isLoading={isLoading}
+      >
+        <div className="space-y-4">
+          <div className="flex items-center gap-4">
+            <Skeleton className="w-14 h-14 rounded-2xl shrink-0" />
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-40" />
+              <Skeleton className="h-3 w-24" />
+            </div>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+            <div className="space-y-1">
+              <Skeleton className="h-3 w-10" />
+              <Skeleton className="h-4 w-32" />
+            </div>
+            <div className="space-y-1">
+              <Skeleton className="h-3 w-16" />
+              <Skeleton className="h-4 w-48" />
+            </div>
+          </div>
+        </div>
+      </SettingsCard>
+    );
+
   const watched = watch();
   const isDirty =
-    watched.businessName !== saved.businessName ||
-    watched.phone !== saved.phone ||
-    (watched.description ?? "") !== (saved.description ?? "") ||
-    businessType !== saved.businessType ||
-    logoPreview !== saved.logo;
+    watched.businessName !== org.name ||
+    watched.phone !== (org.phone ?? "") ||
+    (watched.description ?? "") !== (org.description ?? "") ||
+    (watched.address ?? "") !== (org.address ?? "") ||
+    businessType !== (org.businessType ?? "") ||
+    logoPreview !== (org.logo ?? null);
 
-  const initials = saved.businessName.slice(0, 2).toUpperCase();
+  const initials = org.name
+    .split(" ")
+    .map((w) => w[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
 
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -93,28 +141,31 @@ const SettingsBusinessInfo = () => {
 
   const handleCancel = () => {
     reset({
-      businessName: saved.businessName,
-      phone: saved.phone,
-      description: saved.description,
-      businessType: saved.businessType,
+      businessName: org.name,
+      phone: org.phone ?? "",
+      description: org.description ?? "",
+      address: org.address ?? "",
+      businessType: org.businessType,
     });
-    setBusinessType(saved.businessType);
+    setBusinessType(org.businessType);
     setLogo(null);
-    setLogoPreview(saved.logo);
+    setLogoPreview(org.logo);
     setIsEditing(false);
   };
 
   const onSubmit = async (values: FormValues) => {
-    setIsSubmitting(true);
-    try {
-      // TODO: PUT /api/organisation
-      await new Promise((res) => setTimeout(res, 800));
-      setSaved({ ...values, businessType, logo: logoPreview });
-      reset(values);
-      setIsEditing(false);
-    } finally {
-      setIsSubmitting(false);
-    }
+    updateOrg(
+      {
+        name: values.businessName,
+        phone: values.phone,
+        description: values.description,
+        address: values.address,
+        businessType: businessType,
+      },
+      {
+        onSuccess: () => setIsEditing(false),
+      },
+    );
   };
 
   return (
@@ -122,7 +173,8 @@ const SettingsBusinessInfo = () => {
       title="Business Info"
       description="Appears on your public booking page"
       isEditing={isEditing}
-      isSubmitting={isSubmitting}
+      isLoading={isLoading}
+      isSubmitting={isPending}
       isDirty={isDirty}
       onEdit={() => setIsEditing(true)}
       onCancel={handleCancel}
@@ -133,9 +185,9 @@ const SettingsBusinessInfo = () => {
         <div className="space-y-4">
           <div className="flex items-center gap-4">
             <div className="w-14 h-14 rounded-2xl bg-brand-500/10 flex items-center justify-center shrink-0 border border-brand-500/20 overflow-hidden">
-              {saved.logo ? (
+              {org.logo ? (
                 <img
-                  src={saved.logo}
+                  src={org.logo}
                   alt="Logo"
                   className="w-full h-full object-cover"
                 />
@@ -147,28 +199,28 @@ const SettingsBusinessInfo = () => {
             </div>
             <div>
               <p className="text-base font-semibold text-foreground">
-                {saved.businessName}
+                {org.name}
               </p>
               <p className="text-sm text-muted-foreground">
-                {saved.businessType}
+                {org.businessType}
               </p>
             </div>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
             {[
-              { label: "Phone", value: saved.phone },
-              { label: "Description", value: saved.description },
-            ].map(
-              ({ label, value }) =>
-                value && (
-                  <div key={label}>
-                    <p className="text-xs text-muted-foreground mb-0.5">
-                      {label}
-                    </p>
-                    <p className="text-sm text-foreground">{value}</p>
-                  </div>
-                ),
-            )}
+              { label: "Phone", value: org.phone },
+              { label: "Description", value: org.description },
+              { label: "Address", value: org.address },
+            ].map(({ label, value }) => (
+              <div key={label}>
+                <p className="text-xs text-muted-foreground mb-0.5">{label}</p>
+                <p
+                  className={`text-sm ${value ? "text-foreground" : "text-muted-foreground italic"}`}
+                >
+                  {value ?? "N/A"}
+                </p>
+              </div>
+            ))}
           </div>
         </div>
       ) : (
@@ -218,7 +270,7 @@ const SettingsBusinessInfo = () => {
                     className="text-xs h-7 text-muted-foreground hover:text-destructive"
                     onClick={() => {
                       setLogo(null);
-                      setLogoPreview(saved.logo);
+                      setLogoPreview(org.logo);
                     }}
                   >
                     <X className="h-3 w-3 mr-1" />
@@ -295,6 +347,18 @@ const SettingsBusinessInfo = () => {
               placeholder="Brief description of your business..."
               {...register("description")}
             />
+          </Field>
+
+          <Field>
+            <FieldLabel>Address</FieldLabel>
+            <div className="relative">
+              <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+              <Input
+                className="pl-9"
+                placeholder="e.g. 123 Main St, Auckland"
+                {...register("address")}
+              />
+            </div>
           </Field>
         </form>
       )}

@@ -12,26 +12,33 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { AlertTriangle, Loader2 } from "lucide-react";
-
-const BUSINESS_NAME = "John's Salon"; // TODO: from API
+import {
+  useDeleteOrganisation,
+  useOrganisation,
+} from "@/hooks/api/useOrganisation";
+import { useClerk } from "@clerk/nextjs";
+import { useRouter } from "next/navigation";
 
 const SettingsDangerZone = () => {
+  const { data: org } = useOrganisation();
+  const { mutate: deleteOrg, isPending } = useDeleteOrganisation();
+  const { signOut } = useClerk(); // from @clerk/nextjs
+  const router = useRouter();
+
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [input, setInput] = useState("");
-  const [isDeleting, setIsDeleting] = useState(false);
 
-  const isMatch = input === BUSINESS_NAME;
+  const isMatch = input === org?.name;
 
   const handleDelete = async () => {
     if (!isMatch) return;
-    setIsDeleting(true);
-    try {
-      // TODO: DELETE /api/organisation
-      await new Promise((res) => setTimeout(res, 1500));
-      // redirect to /goodbye or sign out
-    } finally {
-      setIsDeleting(false);
-    }
+
+    deleteOrg(undefined, {
+      onSuccess: async () => {
+        await signOut(); // Sign out the user after deletion
+        router.push("/"); // Redirect to homepage or login page
+      },
+    });
   };
 
   return (
@@ -82,9 +89,7 @@ const SettingsDangerZone = () => {
             </div>
             <DialogDescription className="text-sm text-muted-foreground">
               This will permanently delete{" "}
-              <span className="font-semibold text-foreground">
-                {BUSINESS_NAME}
-              </span>{" "}
+              <span className="font-semibold text-foreground">{org?.name}</span>{" "}
               and all associated data. This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
@@ -106,14 +111,14 @@ const SettingsDangerZone = () => {
               <p className="text-sm text-foreground mb-2">
                 Type{" "}
                 <span className="font-mono font-semibold text-foreground bg-muted px-1.5 py-0.5 rounded">
-                  {BUSINESS_NAME}
+                  {org?.name}
                 </span>{" "}
                 to confirm:
               </p>
               <Input
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder={BUSINESS_NAME}
+                placeholder={org?.name}
                 className={isMatch ? "border-destructive" : ""}
               />
             </div>
@@ -127,7 +132,7 @@ const SettingsDangerZone = () => {
                 setConfirmOpen(false);
                 setInput("");
               }}
-              disabled={isDeleting}
+              disabled={isPending}
             >
               Cancel
             </Button>
@@ -135,9 +140,9 @@ const SettingsDangerZone = () => {
               variant="destructive"
               className="flex-1 rounded-xl disabled:opacity-50"
               onClick={handleDelete}
-              disabled={!isMatch || isDeleting}
+              disabled={!isMatch || isPending || !org}
             >
-              {isDeleting ? (
+              {isPending ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Deleting...

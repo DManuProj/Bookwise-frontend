@@ -1,17 +1,15 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useUser } from "@clerk/nextjs";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Field, FieldLabel, FieldError } from "@/components/ui/field";
-import { cn } from "@/lib/utils";
 import {
   User,
   Phone,
@@ -22,6 +20,9 @@ import {
   Loader2,
   Sparkles,
 } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useUpdateMe } from "@/hooks/api/useUpdateMe";
+import { useMe } from "@/hooks/api/useMe";
 
 /* ── Schema ── */
 const schema = z.object({
@@ -34,43 +35,48 @@ type FormValues = z.infer<typeof schema>;
 
 /* ── Component ── */
 const ProfileSetupForm = () => {
+  // 1. ALL hooks
   const router = useRouter();
-  const { user } = useUser();
-  //   // Replace with mock data:
-  //   const user = {
-  //     firstName: "Sarah",
-  //     lastName: "Johnson",
-  //     imageUrl: undefined,
-  //     fullName: "Sarah Johnson",
-  //     primaryEmailAddress: { emailAddress: "sarah@example.com" },
-  //   };
+  const { data: user, isLoading } = useMe();
   const fileInputRef = useRef<HTMLInputElement>(null);
-
   const [photo, setPhoto] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { mutate: submitUser, isPending } = useUpdateMe();
 
   const {
     register,
     handleSubmit,
+    reset,
     formState: { errors },
   } = useForm<FormValues>({
     resolver: zodResolver(schema),
     mode: "onSubmit",
     reValidateMode: "onChange",
     defaultValues: {
-      firstName: user?.firstName ?? "",
-      lastName: user?.lastName ?? "",
+      firstName: "",
+      lastName: "",
       phone: "",
     },
   });
 
+  // 2. Sync form when user data arrives
+  useEffect(() => {
+    if (!user) return;
+    reset({
+      firstName: user.firstName ?? "",
+      lastName: user.lastName ?? "",
+      phone: "",
+    });
+  }, [user, reset]);
+
+  // 3. Derived values
   const initials =
     [user?.firstName?.[0], user?.lastName?.[0]]
       .filter(Boolean)
       .join("")
       .toUpperCase() || "U";
 
+  // 4. Handlers
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -85,20 +91,61 @@ const ProfileSetupForm = () => {
   };
 
   const onSubmit = async (values: FormValues) => {
-    setIsSubmitting(true);
-    try {
-      // TODO: PUT /api/me — save firstName, lastName, phone, photo
-      // TODO: mark profileComplete = true in DB
-      // TODO: upload photo to storage if provided
-      await new Promise((res) => setTimeout(res, 1000));
-      router.push("/dashboard");
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setIsSubmitting(false);
-    }
+    submitUser(values, {
+      onSuccess: () => {
+        router.push("/dashboard");
+      },
+    });
   };
 
+  // 5. Early return — AFTER all hooks
+  if (isLoading) {
+    return (
+      <Card className="w-full overflow-hidden border-border bg-card p-0 gap-0 rounded-2xl shadow-sm">
+        <div className="h-1.5 w-full bg-gradient-to-r from-brand-500 to-brand-400" />
+        <CardContent className="p-8">
+          {/* Header */}
+          <div className="flex flex-col items-center mb-8">
+            <Skeleton className="w-12 h-12 rounded-2xl mb-4" />
+            <Skeleton className="h-6 w-48 mb-2" />
+            <Skeleton className="h-4 w-64" />
+          </div>
+
+          {/* Photo */}
+          <div className="flex flex-col items-center mb-8 pb-8 border-b border-border">
+            <Skeleton className="h-20 w-20 rounded-full mb-3" />
+            <Skeleton className="h-7 w-28" />
+            <Skeleton className="h-3 w-40 mt-2" />
+          </div>
+
+          {/* Fields */}
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Skeleton className="h-3 w-20" />
+                <Skeleton className="h-9 w-full rounded-md" />
+              </div>
+              <div className="space-y-1.5">
+                <Skeleton className="h-3 w-20" />
+                <Skeleton className="h-9 w-full rounded-md" />
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <Skeleton className="h-3 w-24" />
+              <Skeleton className="h-9 w-full rounded-md" />
+            </div>
+            <div className="space-y-1.5">
+              <Skeleton className="h-3 w-24" />
+              <Skeleton className="h-9 w-full rounded-md" />
+            </div>
+            <Skeleton className="h-11 w-full rounded-xl mt-2" />
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // 6. JSX
   return (
     <Card className="w-full overflow-hidden border-border bg-card p-0 gap-0 rounded-2xl shadow-sm">
       {/* Gradient accent bar */}
@@ -129,7 +176,10 @@ const ProfileSetupForm = () => {
               {photoPreview ? (
                 <AvatarImage src={photoPreview} alt="Profile photo" />
               ) : (
-                <AvatarImage src={user?.imageUrl} alt={user?.fullName ?? ""} />
+                <AvatarImage
+                  src={user?.photoUrl || ""}
+                  alt={user?.firstName ?? ""}
+                />
               )}
               <AvatarFallback className="bg-brand-500/10 text-brand-600 dark:text-brand-400 text-xl font-bold">
                 {initials}
@@ -238,7 +288,7 @@ const ProfileSetupForm = () => {
               <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
               <Input
                 type="email"
-                value={user?.primaryEmailAddress?.emailAddress ?? ""}
+                value={user?.email || ""}
                 disabled
                 className="pl-9 opacity-60 cursor-not-allowed"
               />
@@ -251,10 +301,10 @@ const ProfileSetupForm = () => {
           {/* Submit */}
           <Button
             type="submit"
-            disabled={isSubmitting}
+            disabled={isPending}
             className="w-full bg-brand-500 hover:bg-brand-600 text-white rounded-xl h-11 shadow-sm shadow-brand-500/20 font-semibold mt-2 disabled:opacity-70"
           >
-            {isSubmitting ? (
+            {isPending ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Setting up your profile...

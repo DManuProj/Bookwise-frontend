@@ -3,97 +3,75 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { UserPlus } from "lucide-react";
-import type { StaffMember } from "@/types";
-import StaffTable from "@/components/dashboard/staff/StaffTable";
+import type { User, SendInvitation } from "@/types";
+
 import StaffStatsStrip from "@/components/dashboard/staff/StaffStatsStrip";
 import StaffEmptyState from "@/components/dashboard/staff/StaffEmptyState";
+import ActiveMembersTable from "@/components/dashboard/staff/ActiveMembersTable";
+import PendingInvitationsList from "@/components/dashboard/staff/PendingInvitationsList";
 import InviteStaffModal from "@/components/dashboard/staff/InviteStaffModal";
 import EditRoleModal from "@/components/dashboard/staff/EditRoleModal";
 
-/* ── Placeholder data ── */
-const INITIAL_STAFF: StaffMember[] = [
-  {
-    id: "u1",
-    name: "Alex Morgan",
-    email: "alex@bookwise.ai",
-    role: "OWNER",
-    status: "active",
-    isOwner: true,
-    phone: "+1 555 0100",
-    joinedAt: "Jan 2024",
-  },
-  {
-    id: "u2",
-    name: "James Wilson",
-    email: "james@bookwise.ai",
-    role: "ADMIN",
-    status: "active",
-    isOwner: false,
-    phone: "+1 555 0101",
-    joinedAt: "Feb 2024",
-  },
-  {
-    id: "u3",
-    name: "Anna Chen",
-    email: "anna@bookwise.ai",
-    role: "MEMBER",
-    status: "active",
-    isOwner: false,
-    phone: "+1 555 0102",
-    joinedAt: "Mar 2024",
-  },
-  {
-    id: "u4",
-    name: "",
-    email: "mike@example.com",
-    role: "MEMBER",
-    status: "inactive",
-    isOwner: false,
-    joinedAt: undefined,
-  },
-];
+import {
+  useStaff,
+  useStaffInvite,
+  useStaffChangeRole,
+  useDeleteStaff,
+  useResendInvitation,
+  useCancelInvitation, // ← will exist after you create it
+} from "@/hooks/api/useStaff";
 
-/* ── Page ── */
 const StaffPage = () => {
-  const [staff, setStaff] = useState<StaffMember[]>(INITIAL_STAFF);
+  const { data, isPending } = useStaff();
+  const { mutate: inviteUser, isPending: isInviting } = useStaffInvite();
+  const { mutate: changeRole, isPending: isChangingRole } =
+    useStaffChangeRole();
+  const { mutate: removeStaff, isPending: isRemoving } = useDeleteStaff();
+  const { mutate: resendInvite, isPending: isResending } =
+    useResendInvitation();
+  const { mutate: cancelInvite, isPending: isCancelling } =
+    useCancelInvitation();
+
+  const users = data?.users ?? [];
+  const invitations = data?.invitations ?? [];
+
   const [inviteOpen, setInviteOpen] = useState(false);
-  const [editMember, setEditMember] = useState<StaffMember | null>(null);
-  const [editRoleOpen, setEditRoleOpen] = useState(false);
+  const [editUser, setEditUser] = useState<User | null>(null);
 
   /* ── Stats ── */
-  const active = staff.filter((s) => s.status === "active").length;
-  const pending = staff.filter((s) => s.status === "inactive").length;
+  const total = users.length + invitations.length;
+  const activeCount = users.length;
+  const pendingCount = invitations.length;
 
   /* ── Handlers ── */
-  const handleInvite = (email: string, role: "ADMIN" | "MEMBER") => {
-    const newMember: StaffMember = {
-      id: crypto.randomUUID(),
-      name: "",
-      email,
-      role,
-      status: "inactive",
-      isOwner: false,
-    };
-    setStaff((prev) => [...prev, newMember]);
+  const handleInvite = (data: SendInvitation) => {
+    inviteUser(data, {
+      onSuccess: () => setInviteOpen(false),
+    });
   };
 
-  const handleEditRole = (member: StaffMember) => {
-    setEditMember(member);
-    setEditRoleOpen(true);
-  };
-
-  const handleResend = (id: string) => {
-    // TODO: POST /api/staff/invite/resend
-    console.log("Resend invite for:", id);
+  const handleEditRole = (user: User) => {
+    setEditUser(user);
   };
 
   const handleSaveRole = (id: string, role: "ADMIN" | "MEMBER") => {
-    setStaff((prev) => prev.map((s) => (s.id === id ? { ...s, role } : s)));
+    changeRole({ id, role }, { onSuccess: () => setEditUser(null) });
   };
 
-  const handleRemove = (id: string) => {
-    setStaff((prev) => prev.filter((s) => s.id !== id));
+  const handleRemoveUser = (id: string) => {
+    removeStaff(id);
   };
+
+  const handleResendInvite = (id: string) => {
+    resendInvite(id);
+  };
+
+  const handleCancelInvite = (id: string) => {
+    cancelInvite(id);
+  };
+
+  /* ── Empty state — no users AND no invites AND not loading ── */
+  const isEmpty = !isPending && users.length === 0 && invitations.length === 0;
 
   return (
     <div className="p-6 lg:p-8 max-w-7xl mx-auto space-y-6">
@@ -109,30 +87,44 @@ const StaffPage = () => {
           onClick={() => setInviteOpen(true)}
           className="bg-brand-500 hover:bg-brand-600 text-white rounded-lg h-11 shadow-sm shadow-brand-500/20"
         >
-          <UserPlus className="h-4 w-4 " />
+          <UserPlus className="h-4 w-4 mr-2" />
           Invite Staff
         </Button>
       </div>
 
-      {/* Stats */}
-      {staff.length > 0 && (
+      {/* Stats — only when we have data */}
+      {!isPending && total > 0 && (
         <StaffStatsStrip
-          total={staff.length}
-          active={active}
-          pending={pending}
+          total={total}
+          active={activeCount}
+          pending={pendingCount}
         />
       )}
 
-      {/* Table or empty */}
-      {staff.length > 0 ? (
-        <StaffTable
-          staff={staff}
-          onEdit={handleEditRole}
-          onRemove={handleRemove}
-          onResend={handleResend}
-        />
-      ) : (
+      {/* Empty state — no staff at all */}
+      {isEmpty ? (
         <StaffEmptyState onInvite={() => setInviteOpen(true)} />
+      ) : (
+        <div className="space-y-8">
+          {/* Active members — always render (with skeleton if loading) */}
+          <ActiveMembersTable
+            users={users}
+            isLoading={isPending}
+            isRemoving={isRemoving}
+            onEditRole={handleEditRole}
+            onRemove={handleRemoveUser}
+          />
+
+          {/* Pending invitations — only renders if invites exist or loading */}
+          <PendingInvitationsList
+            invitations={invitations}
+            isLoading={isPending}
+            isResending={isResending}
+            isCancelling={isCancelling}
+            onResend={handleResendInvite}
+            onCancel={handleCancelInvite}
+          />
+        </div>
       )}
 
       {/* Invite modal */}
@@ -140,17 +132,16 @@ const StaffPage = () => {
         open={inviteOpen}
         onClose={() => setInviteOpen(false)}
         onInvite={handleInvite}
+        isSubmitting={isInviting}
       />
 
       {/* Edit role modal */}
       <EditRoleModal
-        open={editRoleOpen}
-        onClose={() => {
-          setEditRoleOpen(false);
-          setEditMember(null);
-        }}
-        member={editMember}
+        open={true}
+        onClose={() => setEditUser(null)}
+        member={editUser}
         onSave={handleSaveRole}
+        isSubmitting={isChangingRole}
       />
     </div>
   );

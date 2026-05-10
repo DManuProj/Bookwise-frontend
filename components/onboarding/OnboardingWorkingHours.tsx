@@ -14,10 +14,10 @@ import {
 } from "@/components/ui/select";
 import { ArrowRight, ArrowLeft, Clock } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import type { Step2Data, WorkingHourRow } from "@/types";
+import { WorkingHour } from "@/types";
 
 /* ── Constants ── */
-const DAYS: { key: WorkingHourRow["day"]; label: string }[] = [
+const DAYS: { key: WorkingHour["day"]; label: string }[] = [
   { key: "MON", label: "Monday" },
   { key: "TUE", label: "Tuesday" },
   { key: "WED", label: "Wednesday" },
@@ -39,7 +39,7 @@ const TIME_OPTIONS = Array.from({ length: 48 }, (_, i) => {
   return { value, display };
 });
 
-const DEFAULT_HOURS: WorkingHourRow[] = [
+const DEFAULT_HOURS: WorkingHour[] = [
   { day: "MON", isOpen: true, openTime: "09:00", closeTime: "18:00" },
   { day: "TUE", isOpen: true, openTime: "09:00", closeTime: "18:00" },
   { day: "WED", isOpen: true, openTime: "09:00", closeTime: "18:00" },
@@ -51,8 +51,8 @@ const DEFAULT_HOURS: WorkingHourRow[] = [
 
 /* ── Props ── */
 type Props = {
-  initialData: Step2Data | null;
-  onComplete: (data: Step2Data) => void;
+  initialData: WorkingHour[]; // ← array, not wrapper
+  onComplete: (workingHours: WorkingHour[]) => void;
   onBack: () => void;
 };
 
@@ -82,8 +82,8 @@ const TimeSelect = ({
 
 /* ── Main component ── */
 const OnboardingWorkingHours = ({ initialData, onComplete, onBack }: Props) => {
-  const [hours, setHours] = useState<WorkingHourRow[]>(
-    initialData?.workingHours ?? DEFAULT_HOURS,
+  const [hours, setHours] = useState<WorkingHour[]>(
+    initialData?.length ? initialData : DEFAULT_HOURS,
   );
   const [sameHours, setSameHours] = useState(false);
   const [sameOpen, setSameOpen] = useState("09:00");
@@ -91,8 +91,8 @@ const OnboardingWorkingHours = ({ initialData, onComplete, onBack }: Props) => {
   const [error, setError] = useState<string | null>(null);
 
   const updateRow = (
-    day: WorkingHourRow["day"],
-    field: keyof WorkingHourRow,
+    day: WorkingHour["day"],
+    field: keyof WorkingHour,
     value: string | boolean,
   ) => {
     setHours((prev) =>
@@ -121,7 +121,7 @@ const OnboardingWorkingHours = ({ initialData, onComplete, onBack }: Props) => {
         return;
       }
     }
-    onComplete({ workingHours: hours });
+    onComplete(hours);
   };
 
   return (

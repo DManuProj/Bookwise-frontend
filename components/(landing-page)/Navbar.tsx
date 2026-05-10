@@ -8,6 +8,7 @@ import { Menu, X, Moon, Sun } from "lucide-react";
 import Logo from "@/components/shared/Logo";
 import Container from "@/components/shared/Container";
 import { useTheme } from "next-themes";
+import SignedInActions from "@/components/(landing-page)/SignedInActions";
 
 const navLinks = [
   { label: "Features", href: "#features" },
@@ -82,7 +83,7 @@ const Navbar = () => {
               </div>
             ) : !isSignedIn ? (
               <>
-                <SignInButton mode="modal">
+                <SignInButton mode="modal" forceRedirectUrl="/dashboard">
                   <Button
                     variant="ghost"
                     size="lg"
@@ -102,16 +103,7 @@ const Navbar = () => {
                 </SignUpButton>
               </>
             ) : (
-              <>
-                <Button
-                  size="sm"
-                  className="bg-brand-500 hover:bg-brand-600 text-white"
-                  asChild
-                >
-                  <Link href="/dashboard">Dashboard</Link>
-                </Button>
-                <UserButton />
-              </>
+              <SignedInActions />
             )}
           </div>
 
@@ -179,17 +171,7 @@ const Navbar = () => {
                     </SignUpButton>
                   </>
                 ) : (
-                  <>
-                    <Button
-                      className="w-full bg-brand-500 hover:bg-brand-600 text-white"
-                      asChild
-                    >
-                      <Link href="/dashboard">Dashboard</Link>
-                    </Button>
-                    <div className="px-3 py-2">
-                      <UserButton />
-                    </div>
-                  </>
+                  <SignedInActions />
                 )}
               </div>
             </div>

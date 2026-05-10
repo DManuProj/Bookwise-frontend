@@ -10,24 +10,26 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Search, X } from "lucide-react";
+import { FilterState } from "@/types";
+import { useStaff } from "@/hooks/api/useStaff";
 
-export type FilterState = {
-  search: string;
-  status: string;
-  date: string;
-  staff: string;
-};
-
-type Props = {
+const BookingsFilters = ({
+  filters,
+  onChange,
+  onClear,
+  hasActive,
+  disabled = false,
+}: {
   filters: FilterState;
-  onChange: (filters: FilterState) => void;
+  onChange: (changes: Partial<FilterState>) => void;
   onClear: () => void;
   hasActive: boolean;
-};
-
-const BookingsFilters = ({ filters, onChange, onClear, hasActive }: Props) => {
+  disabled?: boolean;
+}) => {
   const set = (key: keyof FilterState, value: string) =>
-    onChange({ ...filters, [key]: value });
+    onChange({ [key]: value });
+
+  const { data: staffData, isPending } = useStaff();
 
   return (
     <div className="flex flex-col sm:flex-row gap-3">
@@ -35,6 +37,7 @@ const BookingsFilters = ({ filters, onChange, onClear, hasActive }: Props) => {
       <div className="relative flex-1">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
         <Input
+          disabled={disabled}
           placeholder="Search customer or service..."
           value={filters.search}
           onChange={(e) => set("search", e.target.value)}
@@ -43,22 +46,30 @@ const BookingsFilters = ({ filters, onChange, onClear, hasActive }: Props) => {
       </div>
 
       {/* Status */}
-      <Select value={filters.status} onValueChange={(v) => set("status", v)}>
+      <Select
+        disabled={disabled}
+        value={filters.status}
+        onValueChange={(v) => set("status", v)}
+      >
         <SelectTrigger className="h-9 w-full sm:w-36">
           <SelectValue placeholder="All statuses" />
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="all">All statuses</SelectItem>
-          <SelectItem value="pending">Pending</SelectItem>
-          <SelectItem value="confirmed">Confirmed</SelectItem>
-          <SelectItem value="completed">Completed</SelectItem>
-          <SelectItem value="cancelled">Cancelled</SelectItem>
-          <SelectItem value="no_show">No Show</SelectItem>
+          <SelectItem value="PENDING">Pending</SelectItem>
+          <SelectItem value="CONFIRMED">Confirmed</SelectItem>
+          <SelectItem value="COMPLETED">Completed</SelectItem>
+          <SelectItem value="CANCELLED">Cancelled</SelectItem>
+          <SelectItem value="NO_SHOW">No Show</SelectItem>
         </SelectContent>
       </Select>
 
       {/* Date range */}
-      <Select value={filters.date} onValueChange={(v) => set("date", v)}>
+      <Select
+        disabled={disabled || isPending}
+        value={filters.date}
+        onValueChange={(v) => set("date", v)}
+      >
         <SelectTrigger className="h-9 w-full sm:w-36">
           <SelectValue placeholder="All dates" />
         </SelectTrigger>
@@ -72,22 +83,28 @@ const BookingsFilters = ({ filters, onChange, onClear, hasActive }: Props) => {
       </Select>
 
       {/* Staff */}
-      <Select value={filters.staff} onValueChange={(v) => set("staff", v)}>
+      <Select
+        disabled={disabled}
+        value={filters.staff}
+        onValueChange={(v) => set("staff", v)}
+      >
         <SelectTrigger className="h-9 w-full sm:w-36">
           <SelectValue placeholder="All staff" />
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="all">All staff</SelectItem>
-          <SelectItem value="James">James</SelectItem>
-          <SelectItem value="Anna">Anna</SelectItem>
-          <SelectItem value="You">You</SelectItem>
-          <SelectItem value="unassigned">Unassigned</SelectItem>
+          {staffData?.users.map((staff) => (
+            <SelectItem key={staff.id} value={staff.id}>
+              {`${staff.firstName} ${staff.lastName}`}
+            </SelectItem>
+          ))}
         </SelectContent>
       </Select>
 
       {/* Clear */}
       {hasActive && (
         <Button
+          disabled={disabled}
           variant="ghost"
           size="sm"
           onClick={onClear}

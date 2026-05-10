@@ -18,9 +18,10 @@ const SettingsPage = () => (
     {/* Centered content with max width */}
     <div className="max-w-2xl mx-auto space-y-4">
       <SettingsBusinessInfo />
-      <SettingsWorkingHours />
       <SettingsBookingPrefs />
-      <SettingsNotifications />
+      <SettingsWorkingHours />
+
+      {/* <SettingsNotifications /> */}
       <SettingsProfile />
       <SettingsDangerZone />
     </div>
