@@ -42,4 +42,12 @@ export const endpoints = {
   bookings: "/api/bookings",
   updateBookingById: (id: string) => `/api/bookings/${id}`,
   bookingSlots: "/api/bookings/slots",
+
+  //overview
+  overview: "/api/overview",
+
+  //notification
+  notifications: "/api/notifications",
+  markNotificationRead: (id: string) => `/api/notifications/${id}/read`,
+  markAllNotificationsRead: "/api/notifications/read-all",
 } as const;

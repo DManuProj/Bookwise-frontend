@@ -39,4 +39,9 @@ export const queryKeys = {
       date,
       excludeBookingId ?? "",
     ] as const,
+
+  overview: ["overview"] as const,
+
+  //notificaton
+  notifications: ["notifications"] as const,
 } as const;

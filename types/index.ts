@@ -8,3 +8,4 @@ export * from "./customer";
 export * from "./booking";
 export * from "./onboarding";
 export * from "./public-booking";
+export * from "./notification";

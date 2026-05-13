@@ -29,3 +29,22 @@ export type InviteStatus =
 export type DayOfWeek = "MON" | "TUE" | "WED" | "THU" | "FRI" | "SAT" | "SUN";
 
 export type LeaveStatus = "PENDING" | "APPROVED" | "REJECTED" | "CANCELLED";
+
+export type AuditAction =
+  | "BOOKING_CREATED"
+  | "BOOKING_CANCELLED"
+  | "BOOKING_COMPLETED"
+  | "BOOKING_UPDATED"
+  | "CUSTOMER_CREATED"
+  | "STAFF_INVITED"
+  | "STAFF_JOINED"
+  | "SERVICE_CREATED";
+
+export type NotificationType =
+  | "BOOKING"
+  | "STAFF"
+  | "LEAVE"
+  | "ROLE"
+  | "SERVICE";
+
+export type NotificationEntityType = "BOOKING";

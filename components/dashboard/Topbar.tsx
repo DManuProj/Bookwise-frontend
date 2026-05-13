@@ -7,15 +7,42 @@ import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { useSidebar } from "@/components/ui/sidebar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  useMarkAllAsRead,
+  useMarkAsRead,
+  useNotifications,
+} from "@/hooks/api/useNotifications";
+import { Notification } from "@/types";
+import { NotificationRow } from "@/components/dashboard/notifications/NotificationRow";
 
 const Topbar = () => {
   const router = useRouter();
   const { toggleSidebar } = useSidebar();
 
   const [mounted, setMounted] = useState(false);
-  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [popoverOpen, setPopoverOpen] = useState(false);
+
+  const { data: notifications } = useNotifications();
+  const { mutate: markAsRead } = useMarkAsRead();
+  const { mutate: markAllAsRead, isPending: isMarkingAll } = useMarkAllAsRead();
+  const unreadCount = notifications?.length ?? 0;
 
   useEffect(() => setMounted(true), []);
+
+  const handleNotificationClick = (notification: Notification) => {
+    markAsRead(notification.id);
+    setPopoverOpen(false);
+    // Navigate based on entityType
+    if (notification.entityType === "BOOKING") {
+      router.push("/dashboard/bookings");
+    }
+    // Future: STAFF → /dashboard/staff, etc.
+  };
 
   return (
     <header className="sticky top-0 z-30 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
@@ -49,41 +76,57 @@ const Topbar = () => {
         {/* Right side */}
         <div className="flex items-center gap-1 sm:gap-2">
           {/* Notifications */}
-          <div className="relative">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="relative h-10 w-10 rounded-xl"
-              aria-label="Notifications"
-              onClick={() => setNotificationsOpen((prev) => !prev)}
-            >
-              <Bell className="h-5 w-5" />
-              <span className="absolute right-2.5 top-2.5 h-2 w-2 rounded-full bg-brand-500" />
-            </Button>
-
-            {notificationsOpen && (
-              <div className="absolute right-0 top-12 z-50 w-80 rounded-2xl border border-border bg-popover p-4 shadow-lg">
-                <div className="mb-3 flex items-center justify-between">
-                  <h3 className="text-sm font-semibold text-foreground">
-                    Notifications
-                  </h3>
-
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-8 rounded-lg px-2 text-xs"
-                    onClick={() => setNotificationsOpen(false)}
-                  >
-                    Close
-                  </Button>
-                </div>
-
-                <div className="rounded-xl bg-muted/40 py-8 text-center text-sm text-muted-foreground">
-                  No notifications yet.
-                </div>
+          <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
+            <PopoverTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="relative h-10 w-10 rounded-xl"
+                aria-label="Notifications"
+              >
+                <Bell className="h-5 w-5" />
+                {unreadCount > 0 && (
+                  <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-semibold text-white">
+                    {unreadCount > 9 ? "9+" : unreadCount}
+                  </span>
+                )}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent align="end" className="w-80 p-0">
+              {/* Header */}
+              <div className="flex items-center justify-between border-b border-border p-3">
+                <h3 className="text-sm font-semibold text-foreground">
+                  Notifications {unreadCount > 0 && `(${unreadCount})`}
+                </h3>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 rounded-lg px-2 text-xs"
+                  onClick={() => markAllAsRead()}
+                  disabled={unreadCount === 0 || isMarkingAll}
+                >
+                  Mark all read
+                </Button>
               </div>
-            )}
-          </div>
+
+              {/* List or empty state */}
+              {unreadCount === 0 ? (
+                <div className="py-8 text-center text-sm text-muted-foreground">
+                  You're all caught up.
+                </div>
+              ) : (
+                <div className="max-h-[400px] divide-y divide-border overflow-y-auto">
+                  {notifications!.map((n) => (
+                    <NotificationRow
+                      key={n.id}
+                      notification={n}
+                      onClick={() => handleNotificationClick(n)}
+                    />
+                  ))}
+                </div>
+              )}
+            </PopoverContent>
+          </Popover>
 
           {/* Settings */}
           <Button
