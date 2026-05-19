@@ -34,6 +34,7 @@ export const useCreateService = () => {
 
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.services });
+      queryClient.invalidateQueries({ queryKey: queryKeys.tierUsage });
       showSuccessToast("Service has been created");
     },
     onError: (error) => showErrorToast(error),
@@ -76,6 +77,7 @@ export const useDeleteService = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.services });
+      queryClient.invalidateQueries({ queryKey: queryKeys.tierUsage });
       showSuccessToast("Service deleted");
     },
     onError: (error) => showErrorToast(error),

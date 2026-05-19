@@ -44,4 +44,8 @@ export const queryKeys = {
 
   //notificaton
   notifications: ["notifications"] as const,
+
+  // billing
+  billing: ["billing"] as const,
+  tierUsage: ["tier-usage"] as const,
 } as const;

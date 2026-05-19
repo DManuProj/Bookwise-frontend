@@ -50,4 +50,10 @@ export const endpoints = {
   notifications: "/api/notifications",
   markNotificationRead: (id: string) => `/api/notifications/${id}/read`,
   markAllNotificationsRead: "/api/notifications/read-all",
+
+  // billing
+  billingStatus: "/api/billing/status",
+  billingSubscribe: "/api/billing/subscribe",
+  billingPortal: "/api/billing/portal",
+  billingUsage: "/api/billing/usage",
 } as const;

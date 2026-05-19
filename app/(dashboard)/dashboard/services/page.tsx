@@ -15,6 +15,8 @@ import {
   useServices,
   useUpdateService,
 } from "@/hooks/api/useServices";
+import { useTierUsage } from "@/hooks/api/useBilling";
+import Link from "next/link";
 
 /* ── Page ── */
 const ServicesPage = () => {
@@ -22,6 +24,9 @@ const ServicesPage = () => {
   const { mutate: createService, isPending: isCreating } = useCreateService();
   const { mutate: updateService, isPending: isUpdating } = useUpdateService();
   const { mutate: deleteService, isPending: isDeleting } = useDeleteService();
+
+  const { data: usage } = useTierUsage();
+  const atCap = usage?.services.atCap ?? false;
 
   const [modalOpen, setModalOpen] = useState(false);
   const [editService, setEditService] = useState<Service | null>(null);
@@ -74,13 +79,30 @@ const ServicesPage = () => {
             Manage what your business offers.
           </p>
         </div>
-        <Button
-          onClick={handleAdd}
-          className="bg-brand-500 hover:bg-brand-600 text-white h-11 rounded-lg shadow-sm shadow-brand-500/20"
-        >
-          <Plus className="h-4 w-4" />
-          Add New Service
-        </Button>
+        {atCap ? (
+          <div className="flex items-center gap-3">
+            <span className="text-xs text-muted-foreground">
+              {usage?.services.used} / {usage?.services.limit} services used
+            </span>
+            <Button
+              asChild
+              className="bg-brand-500 hover:bg-brand-600 text-white h-11 rounded-lg shadow-sm shadow-brand-500/20"
+            >
+              <Link href="/dashboard/settings/billing">
+                <Plus className="h-4 w-4" />
+                Upgrade to add more
+              </Link>
+            </Button>
+          </div>
+        ) : (
+          <Button
+            onClick={handleAdd}
+            className="bg-brand-500 hover:bg-brand-600 text-white h-11 rounded-lg shadow-sm shadow-brand-500/20"
+          >
+            <Plus className="h-4 w-4" />
+            Add New Service
+          </Button>
+        )}
       </div>
 
       {/* Stats */}

@@ -30,6 +30,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useTierUsage } from "@/hooks/api/useBilling";
+import Link from "next/link";
 
 const DEFAULT_FILTERS: FilterState = {
   search: "",
@@ -107,6 +109,9 @@ const BookingsPage = () => {
   const { data, isPending, isFetching } = useBookings(apiFilters);
   const isLoading = isPending;
 
+  const { data: usage } = useTierUsage();
+  const atCap = usage?.bookings.atCap ?? false;
+
   //  Derived values
   const bookings = data?.data ?? [];
   const stats = data?.stats;
@@ -140,14 +145,32 @@ const BookingsPage = () => {
             Manage and track all appointments.
           </p>
         </div>
-        <Button
-          disabled={isLoading}
-          className="bg-brand-500 hover:bg-brand-600 text-white rounded-lg h-11 shadow-sm shadow-brand-500/20"
-          onClick={() => setNewBookingOpen(true)}
-        >
-          <Plus className="h-4 w-4" />
-          Add New Booking
-        </Button>
+        {atCap ? (
+          <div className="flex items-center gap-3">
+            <span className="text-xs text-muted-foreground">
+              {usage?.bookings.used} / {usage?.bookings.limit} bookings this
+              month
+            </span>
+            <Button
+              asChild
+              className="bg-brand-500 hover:bg-brand-600 text-white h-11 rounded-lg shadow-sm shadow-brand-500/20"
+            >
+              <Link href="/dashboard/settings/billing">
+                <Plus className="h-4 w-4" />
+                Upgrade to add more
+              </Link>
+            </Button>
+          </div>
+        ) : (
+          <Button
+            disabled={isLoading}
+            className="bg-brand-500 hover:bg-brand-600 text-white rounded-lg h-11 shadow-sm shadow-brand-500/20"
+            onClick={() => setNewBookingOpen(true)}
+          >
+            <Plus className="h-4 w-4" />
+            Add New Booking
+          </Button>
+        )}
       </div>
 
       {/* Filters */}

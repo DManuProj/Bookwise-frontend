@@ -20,6 +20,8 @@ import {
   useResendInvitation,
   useCancelInvitation, // ← will exist after you create it
 } from "@/hooks/api/useStaff";
+import { useTierUsage } from "@/hooks/api/useBilling";
+import Link from "next/link";
 
 const StaffPage = () => {
   const { data, isPending } = useStaff();
@@ -31,6 +33,9 @@ const StaffPage = () => {
     useResendInvitation();
   const { mutate: cancelInvite, isPending: isCancelling } =
     useCancelInvitation();
+
+  const { data: usage } = useTierUsage();
+  const atCap = usage?.staff.atCap ?? false;
 
   const users = data?.users ?? [];
   const invitations = data?.invitations ?? [];
@@ -83,13 +88,30 @@ const StaffPage = () => {
             Manage your team and their roles.
           </p>
         </div>
-        <Button
-          onClick={() => setInviteOpen(true)}
-          className="bg-brand-500 hover:bg-brand-600 text-white rounded-lg h-11 shadow-sm shadow-brand-500/20"
-        >
-          <UserPlus className="h-4 w-4 mr-2" />
-          Invite Staff
-        </Button>
+        {atCap ? (
+          <div className="flex items-center gap-3">
+            <span className="text-xs text-muted-foreground">
+              {usage?.staff.used} / {usage?.staff.limit} staff used
+            </span>
+            <Button
+              asChild
+              className="bg-brand-500 hover:bg-brand-600 text-white rounded-lg h-11 shadow-sm shadow-brand-500/20"
+            >
+              <Link href="/dashboard/settings/billing">
+                <UserPlus className="h-4 w-4 mr-2" />
+                Upgrade to add more
+              </Link>
+            </Button>
+          </div>
+        ) : (
+          <Button
+            onClick={() => setInviteOpen(true)}
+            className="bg-brand-500 hover:bg-brand-600 text-white rounded-lg h-11 shadow-sm shadow-brand-500/20"
+          >
+            <UserPlus className="h-4 w-4 mr-2" />
+            Invite Staff
+          </Button>
+        )}
       </div>
 
       {/* Stats — only when we have data */}

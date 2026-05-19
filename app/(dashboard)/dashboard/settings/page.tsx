@@ -4,6 +4,7 @@ import SettingsBookingPrefs from "@/components/dashboard/settings/SettingsBookin
 import SettingsNotifications from "@/components/dashboard/settings/SettingsNotifications";
 import SettingsProfile from "@/components/dashboard/settings/SettingsProfile";
 import SettingsDangerZone from "@/components/dashboard/settings/SettingsDangerZone";
+import SettingsBillingCard from "@/components/dashboard/settings/SettingsBillingCard";
 
 const SettingsPage = () => (
   <div className="p-6 lg:p-8">
@@ -22,6 +23,7 @@ const SettingsPage = () => (
       <SettingsWorkingHours />
 
       {/* <SettingsNotifications /> */}
+      <SettingsBillingCard />
       <SettingsProfile />
       <SettingsDangerZone />
     </div>

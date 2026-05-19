@@ -49,6 +49,8 @@ const staffFormSchema = z
 
 type StaffFormValues = z.infer<typeof staffFormSchema>;
 
+const STARTER_STAFF_CAP = 2;
+
 /* ── Props ── */
 type Props = {
   initialData: StaffFormInputs[];
@@ -93,6 +95,9 @@ const OnboardingStaff = ({ initialData, onComplete, onBack }: Props) => {
   });
 
   const staffValues = watch("staff");
+
+  const staffCount = fields.length;
+  const canAddMore = staffCount < STARTER_STAFF_CAP;
 
   /* ── Toggle owner ── */
   const handleAddSelf = () => {
@@ -342,15 +347,26 @@ const OnboardingStaff = ({ initialData, onComplete, onBack }: Props) => {
         </div>
 
         {/* Add staff button */}
-        <Button
-          type="button"
-          variant="outline"
-          onClick={handleAdd}
-          className="w-full border-dashed border-border hover:border-brand-400 hover:bg-brand-500/5 hover:text-brand-600 dark:hover:text-brand-400 text-muted-foreground mb-6"
-        >
-          <Plus className="h-4 w-4 mr-2" />
-          Add another staff member
-        </Button>
+        {canAddMore ? (
+          <Button
+            type="button"
+            variant="outline"
+            onClick={handleAdd}
+            className="w-full border-dashed border-border hover:border-brand-400 hover:bg-brand-500/5 hover:text-brand-600 dark:hover:text-brand-400 text-muted-foreground mb-6"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Add another staff member
+          </Button>
+        ) : (
+          <Alert className="mb-6 bg-blue-500/5 border-blue-500/20">
+            <AlertCircle className="h-4 w-4 text-blue-500" />
+            <AlertDescription className="text-xs text-muted-foreground leading-relaxed">
+              Your free Starter plan includes up to {STARTER_STAFF_CAP} staff
+              members. You can invite more after upgrading from Settings →
+              Billing.
+            </AlertDescription>
+          </Alert>
+        )}
 
         {/* At least 1 notice */}
         {hasNoStaff && (

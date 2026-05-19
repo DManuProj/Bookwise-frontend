@@ -31,6 +31,7 @@ export const useStaffInvite = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.staff });
+      queryClient.invalidateQueries({ queryKey: queryKeys.tierUsage });
       showSuccessToast("Invitation has been created");
     },
     onError: (error) => showErrorToast(error),
@@ -66,6 +67,8 @@ export const useDeleteStaff = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.staff });
+      queryClient.invalidateQueries({ queryKey: queryKeys.tierUsage });
+
       showSuccessToast("Staff member deleted");
     },
     onError: (error) => showErrorToast(error),
@@ -102,6 +105,8 @@ export const useCancelInvitation = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.staff });
+      queryClient.invalidateQueries({ queryKey: queryKeys.tierUsage });
+
       showSuccessToast("Invitation cancelled");
     },
     onError: (error) => showErrorToast(error),

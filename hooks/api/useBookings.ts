@@ -43,6 +43,8 @@ export const useCreateBooking = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["bookings"] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.tierUsage });
+
       showSuccessToast("Booking has been created");
     },
     onError: (error) => showErrorToast(error),
@@ -95,7 +97,12 @@ export const useBookingSlots = (
   const api = useApi();
 
   return useQuery<string[]>({
-    queryKey: queryKeys.bookingSlots(serviceId, staffId, date, excludeBookingId),
+    queryKey: queryKeys.bookingSlots(
+      serviceId,
+      staffId,
+      date,
+      excludeBookingId,
+    ),
     queryFn: async () => {
       const params: any = { serviceId, staffId, date };
       if (excludeBookingId) params.excludeBookingId = excludeBookingId;
