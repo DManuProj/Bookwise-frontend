@@ -66,11 +66,7 @@ const STATUS_CONFIG: Record<
     icon: XCircle,
     className: "bg-rose-500/10 text-rose-600 dark:text-rose-400 border-0",
   },
-  RESCHEDULED: {
-    label: "Rescheduled",
-    icon: CircleDot,
-    className: "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-0",
-  },
+
 };
 
 const formatDate = (iso: string | null) => {
