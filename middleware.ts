@@ -1,5 +1,4 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
-import axios from "axios";
 import { NextResponse } from "next/server";
 
 const isPublicRoute = createRouteMatcher([
@@ -26,24 +25,29 @@ export default clerkMiddleware(async (auth, req) => {
   const token = await getToken();
 
   try {
-    const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/me`, {
+    // Use native fetch — axios is not Edge Runtime compatible
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/me`, {
       headers: { Authorization: `Bearer ${token}` },
     });
 
+    if (!res.ok) return;
+
+    const data = await res.json();
+
     // Rule 1: OWNER + onboarding incomplete
-    if (res.data.role === "OWNER" && !res.data.onboardingComplete) {
+    if (data.role === "OWNER" && !data.onboardingComplete) {
       if (pathname !== "/onboarding") {
         return NextResponse.redirect(new URL("/onboarding", req.url));
       }
-      return; // they're on /onboarding, let them stay
+      return;
     }
 
-    // Rule 2: STAFF + profile incomplet
-    if (res.data.role !== "OWNER" && !res.data.profileComplete) {
+    // Rule 2: STAFF + profile incomplete
+    if (data.role !== "OWNER" && !data.profileComplete) {
       if (pathname !== "/profile/setup") {
         return NextResponse.redirect(new URL("/profile/setup", req.url));
       }
-      return; // they're on /onboarding, let them stay
+      return;
     }
 
     // Rule 3: User is fully set up — block them from setup pages
@@ -52,8 +56,10 @@ export default clerkMiddleware(async (auth, req) => {
     }
 
     return;
-  } catch (error) {
-    console.error("Middleware /api/me failed:", error);
+  } catch {
+    // Backend unreachable (not started yet, deploying, etc.) — let the request through
+    // The client-side API calls will handle auth errors themselves
+    return;
   }
 });
 

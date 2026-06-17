@@ -20,7 +20,7 @@ const InviteUsedState = ({ invite }: Props) => (
         <p className="text-sm text-muted-foreground mb-6 leading-relaxed">
           You've already accepted this invitation and joined{" "}
           <span className="font-semibold text-foreground">
-            {invite.businessName}
+            {invite.orgName}
           </span>
           . Head to your dashboard to get started.
         </p>

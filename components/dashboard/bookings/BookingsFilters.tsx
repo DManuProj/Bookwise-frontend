@@ -9,9 +9,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Search, X } from "lucide-react";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { Search, X, CalendarIcon } from "lucide-react";
+import { format, isSameDay } from "date-fns";
 import { FilterState } from "@/types";
 import { useStaff } from "@/hooks/api/useStaff";
+import { cn } from "@/lib/utils";
+import { useState } from "react";
 
 const BookingsFilters = ({
   filters,
@@ -26,10 +35,23 @@ const BookingsFilters = ({
   hasActive: boolean;
   disabled?: boolean;
 }) => {
-  const set = (key: keyof FilterState, value: string) =>
+  const set = <K extends keyof FilterState>(key: K, value: FilterState[K]) =>
     onChange({ [key]: value });
 
   const { data: staffData, isPending } = useStaff();
+  const [dateOpen, setDateOpen] = useState(false);
+
+  // Display label for the date trigger
+  const dateLabel = (() => {
+    const { dateFrom, dateTo } = filters;
+    if (!dateFrom && !dateTo) return "All dates";
+    if (dateFrom && !dateTo) return format(dateFrom, "MMM d, yyyy");
+    if (dateFrom && dateTo) {
+      if (isSameDay(dateFrom, dateTo)) return format(dateFrom, "MMM d, yyyy");
+      return `${format(dateFrom, "MMM d")} – ${format(dateTo, "MMM d, yyyy")}`;
+    }
+    return "All dates";
+  })();
 
   return (
     <div className="flex flex-col sm:flex-row gap-3">
@@ -65,26 +87,77 @@ const BookingsFilters = ({
       </Select>
 
       {/* Date range */}
-      <Select
-        disabled={disabled || isPending}
-        value={filters.date}
-        onValueChange={(v) => set("date", v)}
-      >
-        <SelectTrigger className="h-9 w-full sm:w-36">
-          <SelectValue placeholder="All dates" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="all">All dates</SelectItem>
-          <SelectItem value="today">Today</SelectItem>
-          <SelectItem value="tomorrow">Tomorrow</SelectItem>
-          <SelectItem value="week">This week</SelectItem>
-          <SelectItem value="month">This month</SelectItem>
-        </SelectContent>
-      </Select>
+      <Popover open={dateOpen} onOpenChange={setDateOpen}>
+        <PopoverTrigger asChild>
+          <button
+            type="button"
+            disabled={disabled || filters.stale}
+            className={cn(
+              "flex h-9 w-full sm:w-56 items-center gap-2 rounded-md border px-3 text-sm text-left transition-colors",
+              "border-input bg-transparent",
+              "hover:border-gray-400 dark:hover:border-teal-400",
+              "disabled:opacity-50 disabled:cursor-not-allowed",
+            )}
+          >
+            <CalendarIcon className="h-4 w-4 text-muted-foreground shrink-0" />
+            <span
+              className={cn(
+                "truncate",
+                filters.dateFrom ? "text-foreground" : "text-muted-foreground",
+              )}
+            >
+              {filters.stale ? "Stale bookings" : dateLabel}
+            </span>
+          </button>
+        </PopoverTrigger>
+        <PopoverContent className="w-auto p-0" align="start">
+          <div className="p-2">
+            <Calendar
+              mode="range"
+              selected={{
+                from: filters.dateFrom,
+                to: filters.dateTo,
+              }}
+              onSelect={(range) => {
+                onChange({
+                  dateFrom: range?.from,
+                  dateTo: range?.to,
+                });
+              }}
+              numberOfMonths={1}
+              className={cn(
+                "[--cell-size:--spacing(9)]",
+                "**:data-[selected-single=true]:bg-brand-500!",
+                "**:data-[selected-single=true]:text-white!",
+                "**:data-[range-start=true]:bg-brand-500!",
+                "**:data-[range-start=true]:text-white!",
+                "**:data-[range-end=true]:bg-brand-500!",
+                "**:data-[range-end=true]:text-white!",
+                "**:data-[range-middle=true]:bg-brand-500/15!",
+                "**:data-[range-middle=true]:text-brand-600!",
+                "dark:**:data-[range-middle=true]:text-brand-400!",
+              )}
+              initialFocus
+            />
+          </div>
+          <div className="border-t p-2 flex justify-end">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                onChange({ dateFrom: undefined, dateTo: undefined });
+                setDateOpen(false);
+              }}
+            >
+              Clear dates
+            </Button>
+          </div>
+        </PopoverContent>
+      </Popover>
 
       {/* Staff */}
       <Select
-        disabled={disabled}
+        disabled={disabled || isPending}
         value={filters.staff}
         onValueChange={(v) => set("staff", v)}
       >

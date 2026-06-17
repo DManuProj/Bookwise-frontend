@@ -1,23 +1,17 @@
-import {
-  CheckCircle2,
-  CalendarDays,
-  User,
-  Mail,
-  Phone,
-} from "lucide-react";
-import { format } from "date-fns";
-import { OrgService, OrgStaff, BookingFormData } from "@/types";
+import { CheckCircle2, CalendarDays, User, Mail, Phone } from "lucide-react";
+import { format, parse } from "date-fns";
+import { Service, PublicOrgStaff, BookingFormData } from "@/types";
+import { CURRENCY } from "@/lib/countries";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 
 interface StepConfirmationProps {
-  service: OrgService;
-  staff: OrgStaff | null;
+  service: Service;
+  staff: PublicOrgStaff | null;
   date: Date;
   time: string;
   customer: BookingFormData;
   orgName: string;
-  currency: string;
 }
 
 export default function StepConfirmation({
@@ -27,7 +21,6 @@ export default function StepConfirmation({
   time,
   customer,
   orgName,
-  currency,
 }: StepConfirmationProps) {
   return (
     <div className="flex flex-col items-center text-center">
@@ -61,7 +54,8 @@ export default function StepConfirmation({
             <div>
               <p className="text-xs text-muted-foreground">Date &amp; Time</p>
               <p className="text-sm font-medium text-foreground">
-                {format(date, "EEEE, MMMM d, yyyy")} at {time}
+                {format(date, "EEEE, MMMM d, yyyy")} at{" "}
+                {format(parse(time, "HH:mm", new Date()), "h:mm a")}
               </p>
             </div>
           </div>
@@ -74,8 +68,9 @@ export default function StepConfirmation({
             <div>
               <p className="text-xs text-muted-foreground">Service</p>
               <p className="text-sm font-medium text-foreground">
-                {service.name} &middot; {service.duration} mins &middot;{" "}
-                {currency}{service.price}
+                {service.name} &middot; {service.durationMins} mins &middot;{" "}
+                {CURRENCY}
+                {service.price}
               </p>
             </div>
           </div>
@@ -88,7 +83,9 @@ export default function StepConfirmation({
             <div>
               <p className="text-xs text-muted-foreground">Staff</p>
               <p className="text-sm font-medium text-foreground">
-                {staff ? staff.name : "First available"}
+                {staff
+                  ? `${staff.firstName} ${staff.lastName}`
+                  : "First available"}
               </p>
             </div>
           </div>
@@ -99,7 +96,9 @@ export default function StepConfirmation({
               <Mail className="h-4 w-4 text-brand-500" />
             </div>
             <div>
-              <p className="text-xs text-muted-foreground">Confirmation sent to</p>
+              <p className="text-xs text-muted-foreground">
+                Confirmation sent to
+              </p>
               <p className="text-sm font-medium text-foreground">
                 {customer.email}
               </p>

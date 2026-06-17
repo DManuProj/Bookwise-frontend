@@ -1,14 +1,15 @@
 import { Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { OrgService } from "@/types";
+
 import { Button } from "@/components/ui/button";
+import { Service } from "@/types";
+import { CURRENCY } from "@/lib/countries";
 
 interface StepServiceProps {
-  services: OrgService[];
+  services: Service[];
   selected: string | null;
   onSelect: (id: string) => void;
   onNext: () => void;
-  currency: string;
 }
 
 export default function StepService({
@@ -16,7 +17,6 @@ export default function StepService({
   selected,
   onSelect,
   onNext,
-  currency,
 }: StepServiceProps) {
   return (
     <div>
@@ -37,7 +37,7 @@ export default function StepService({
                 "w-full text-left rounded-xl p-4 transition-all duration-150",
                 isSelected
                   ? "border-2 border-brand-500 bg-brand-500/[0.08] dark:bg-brand-500/10"
-                  : "border-2 border-border hover:border-brand-400/50 hover:bg-muted/30"
+                  : "border-2 border-border hover:border-brand-400/50 hover:bg-muted/30",
               )}
             >
               <div className="flex items-start justify-between gap-3">
@@ -47,7 +47,7 @@ export default function StepService({
                       "text-sm font-semibold",
                       isSelected
                         ? "text-brand-600 dark:text-brand-400"
-                        : "text-foreground"
+                        : "text-foreground",
                     )}
                   >
                     {service.name}
@@ -60,7 +60,7 @@ export default function StepService({
                   <div className="flex items-center gap-1 mt-1.5">
                     <Clock className="h-3 w-3 text-muted-foreground" />
                     <span className="text-xs text-muted-foreground">
-                      {service.duration} mins
+                      {service.durationMins} mins
                     </span>
                   </div>
                 </div>
@@ -69,10 +69,11 @@ export default function StepService({
                     "text-lg font-bold shrink-0",
                     isSelected
                       ? "text-brand-600 dark:text-brand-400"
-                      : "text-foreground"
+                      : "text-foreground",
                   )}
                 >
-                  {currency}{service.price}
+                  {CURRENCY}
+                  {service.price}
                 </p>
               </div>
 

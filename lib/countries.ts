@@ -11,6 +11,8 @@ export type Currency = {
   name: string;
 };
 
+export const CURRENCY = "$";
+
 /* ── Currencies ── */
 export const CURRENCIES: Currency[] = [
   { code: "USD", symbol: "$", name: "US Dollar" },

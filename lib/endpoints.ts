@@ -3,57 +3,67 @@
  *
  * Why centralize:
  *   - Backend route changes → update ONE file, not 20
- *   - Autocomplete: endpoints.me vs typing "/api/me" everywhere
+ *   - Autocomplete: endpoints.me vs typing "/api/v1/me" everywhere
  *   - Refactor-safe: rename in one place, all usages update
  */
 export const endpoints = {
-  me: "/api/me",
+  me: "/api/v1/me",
 
   // onboarding
-  onboarding: "/api/onboarding",
-  slugCheck: (slug: string) => `/api/slug-check/${encodeURIComponent(slug)}`,
+  onboarding: "/api/v1/onboarding",
+  slugCheck: (slug: string) => `/api/v1/slug-check/${encodeURIComponent(slug)}`,
 
   // setting
-  organisation: "/api/organisation",
-  organisationHours: "/api/organisation/hours",
+  organisation: "/api/v1/organisation",
+  organisationHours: "/api/v1/organisation/hours",
 
   // services
-  services: "/api/services",
-  serviceById: (id: string) => `/api/services/${id}`,
+  services: "/api/v1/services",
+  serviceById: (id: string) => `/api/v1/services/${id}`,
 
   // staff
-  staff: "/api/staff",
-  staffInvite: "/api/staff/invite",
-  staffChangeRole: (id: string) => `/api/staff/${id}/role`,
-  staffRemove: (id: string) => `/api/staff/${id}`,
+  staff: "/api/v1/staff",
+  staffInvite: "/api/v1/staff/invite",
+  staffChangeRole: (id: string) => `/api/v1/staff/${id}/role`,
+  staffRemove: (id: string) => `/api/v1/staff/${id}`,
 
   // invitations
-  resendInvitation: (id: string) => `/api/invitations/${id}/resend`,
-  cancelInvitation: (id: string) => `/api/invitations/${id}/cancel`,
-  invitation: (token: string) => `/api/invitations/${token}`,
-  acceptInvitation: (token: string) => `/api/invitations/accept/${token}`,
+  resendInvitation: (id: string) => `/api/v1/invitations/${id}/resend`,
+  cancelInvitation: (id: string) => `/api/v1/invitations/${id}/cancel`,
+  invitation: (token: string) => `/api/v1/invitations/${token}`,
+  acceptInvitation: (token: string) => `/api/v1/invitations/accept/${token}`,
 
   // customers
-  customers: "/api/customers",
-  customerById: (id: string) => `/api/customers/${id}`,
-  customerNotes: (id: string) => `/api/customers/${id}/notes`,
+  customers: "/api/v1/customers",
+  customerById: (id: string) => `/api/v1/customers/${id}`,
+  customerNotes: (id: string) => `/api/v1/customers/${id}/notes`,
 
   // bookings
-  bookings: "/api/bookings",
-  updateBookingById: (id: string) => `/api/bookings/${id}`,
-  bookingSlots: "/api/bookings/slots",
+  bookings: "/api/v1/bookings",
+  updateBookingById: (id: string) => `/api/v1/bookings/${id}`,
+  bookingSlots: "/api/v1/bookings/slots",
 
   //overview
-  overview: "/api/overview",
+  overview: "/api/v1/overview",
 
   //notification
-  notifications: "/api/notifications",
-  markNotificationRead: (id: string) => `/api/notifications/${id}/read`,
-  markAllNotificationsRead: "/api/notifications/read-all",
+  notifications: "/api/v1/notifications",
+  markNotificationRead: (id: string) => `/api/v1/notifications/${id}/read`,
+  markAllNotificationsRead: "/api/v1/notifications/read-all",
+
+  // public booking
+  publicOrg: (slug: string) => `/api/v1/public/${encodeURIComponent(slug)}`,
+  publicSlots: (slug: string) =>
+    `/api/v1/public/${encodeURIComponent(slug)}/slots`,
+  publicBookings: "/api/v1/public/bookings",
 
   // billing
-  billingStatus: "/api/billing/status",
-  billingSubscribe: "/api/billing/subscribe",
-  billingPortal: "/api/billing/portal",
-  billingUsage: "/api/billing/usage",
+  billingStatus: "/api/v1/billing/status",
+  billingSubscribe: "/api/v1/billing/subscribe",
+  billingPortal: "/api/v1/billing/portal",
+  billingUsage: "/api/v1/billing/usage",
+
+  // leave
+  leave: "/api/v1/leave",
+  leaveById: (id: string) => `/api/v1/leave/${id}`,
 } as const;

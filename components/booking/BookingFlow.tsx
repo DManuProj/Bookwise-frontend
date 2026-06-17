@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import { MapPin, Phone, ArrowLeft } from "lucide-react";
-import { format } from "date-fns";
-import { OrgData, BookingFormData } from "@/types";
+import { format, parse } from "date-fns";
+import { PublicOrgResponse, BookingFormData } from "@/types";
+import { CURRENCY } from "@/lib/countries";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import BookingProgress from "@/components/booking/BookingProgress";
 import BookingChannelSelector from "@/components/booking/BookingChannelSelector";
@@ -13,9 +14,12 @@ import StepStaff from "@/components/booking/steps/StepStaff";
 import StepDateTime from "@/components/booking/steps/StepDateTime";
 import StepDetails from "@/components/booking/steps/StepDetails";
 import StepConfirmation from "@/components/booking/steps/StepConfirmation";
+import { useCreatePublicBooking } from "@/hooks/api/usePublicBooking";
+import { queryKeys } from "@/lib/queryKeys";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface BookingFlowProps {
-  org: OrgData;
+  org: PublicOrgResponse;
 }
 
 export default function BookingFlow({ org }: BookingFlowProps) {
@@ -28,10 +32,14 @@ export default function BookingFlow({ org }: BookingFlowProps) {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [selectedTime, setSelectedTime] = useState<string>("");
   const [customer, setCustomer] = useState<BookingFormData | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const service = org.services.find((s) => s.id === selectedSvc) ?? null;
   const staff = org.staff.find((s) => s.id === selectedStaff) ?? null;
+
+  const { mutate: createBooking, isPending: isSubmitting } =
+    useCreatePublicBooking();
+
+  const queryClient = useQueryClient();
 
   const orgInitials = org.name
     .split(" ")
@@ -41,15 +49,50 @@ export default function BookingFlow({ org }: BookingFlowProps) {
     .toUpperCase();
 
   async function handleSubmit(details: BookingFormData) {
-    setIsSubmitting(true);
-    try {
-      // TODO: POST /api/public/bookings
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-      setCustomer(details);
-      setStep(5);
-    } finally {
-      setIsSubmitting(false);
-    }
+    if (!selectedSvc || !selectedDate || !selectedTime) return;
+    createBooking(
+      {
+        slug: org.slug,
+        serviceId: selectedSvc,
+        staffId: selectedStaff ?? undefined,
+        date: format(selectedDate, "yyyy-MM-dd"),
+        time: selectedTime,
+        note: details.note || undefined,
+        customer: {
+          name: details.name,
+          email: details.email,
+          phone: details.phone,
+        },
+      },
+      {
+        onSuccess: () => {
+          setCustomer(details);
+          setStep(5);
+        },
+        onError: (error: any) => {
+          // Toast is shown by the hook. Here we only handle the recovery flow.
+          // Brittle string match — if backend error messages change, the auto-jump
+          // back to step 3 stops working but the toast still fires.
+          const message = error?.response?.data?.message ?? "";
+          const isStaleSlot =
+            message.includes("no longer available") ||
+            message.includes("on leave");
+
+          if (isStaleSlot) {
+            setSelectedTime("");
+            queryClient.invalidateQueries({
+              queryKey: queryKeys.publicSlots(
+                org.slug,
+                selectedSvc,
+                selectedStaff,
+                format(selectedDate, "yyyy-MM-dd"),
+              ),
+            });
+            setStep(3);
+          }
+        },
+      },
+    );
   }
 
   /* ── Channel selector screen ── */
@@ -61,7 +104,7 @@ export default function BookingFlow({ org }: BookingFlowProps) {
           setShowChannelSelector(false);
           setVoiceWidgetOpen(true);
         }}
-        voiceAiEnabled={org.voiceAiEnabled}
+        aiBookingAvailable={org.aiBookingAvailable}
         orgName={org.name}
       />
     );
@@ -77,6 +120,7 @@ export default function BookingFlow({ org }: BookingFlowProps) {
             setVoiceWidgetOpen(false);
             setShowChannelSelector(true);
           }}
+          orgSlug={org.slug}
         />
       </div>
     );
@@ -102,7 +146,11 @@ export default function BookingFlow({ org }: BookingFlowProps) {
               <div className="flex items-center gap-3 mb-4">
                 <Avatar className="h-14 w-14 rounded-2xl ring-2 ring-brand-500/15 shrink-0">
                   {org.logo && (
-                    <AvatarImage src={org.logo} alt={org.name} className="rounded-2xl" />
+                    <AvatarImage
+                      src={org.logo}
+                      alt={org.name}
+                      className="rounded-2xl"
+                    />
                   )}
                   <AvatarFallback className="rounded-2xl bg-brand-500/10 text-brand-600 dark:text-brand-400 text-lg font-bold">
                     {orgInitials}
@@ -112,7 +160,9 @@ export default function BookingFlow({ org }: BookingFlowProps) {
                   <p className="text-base font-bold text-foreground truncate">
                     {org.name}
                   </p>
-                  <p className="text-xs text-muted-foreground">Online Booking</p>
+                  <p className="text-xs text-muted-foreground">
+                    Online Booking
+                  </p>
                 </div>
               </div>
 
@@ -152,20 +202,24 @@ export default function BookingFlow({ org }: BookingFlowProps) {
                       {service.name}
                     </p>
                     <p className="text-sm font-semibold text-brand-600 dark:text-brand-400 shrink-0">
-                      {org.currency}{service.price}
+                      {CURRENCY} {service.price}
                     </p>
                   </div>
                   <p className="text-xs text-muted-foreground mt-0.5">
-                    {service.duration} mins
+                    {service.durationMins} mins
                   </p>
                   {staff && step > 2 && (
                     <p className="text-xs text-muted-foreground mt-0.5">
-                      with {staff.name}
+                      with {staff.firstName} {staff.lastName}
                     </p>
                   )}
                   {selectedDate && selectedTime && step > 3 && (
                     <p className="text-xs text-muted-foreground mt-0.5">
-                      {format(selectedDate, "EEE, MMM d")} at {selectedTime}
+                      {format(selectedDate, "EEE, MMM d")} at{" "}
+                      {format(
+                        parse(selectedTime, "HH:mm", new Date()),
+                        "h:mm a",
+                      )}
                     </p>
                   )}
                 </div>
@@ -183,7 +237,6 @@ export default function BookingFlow({ org }: BookingFlowProps) {
                 selected={selectedSvc}
                 onSelect={setSelectedSvc}
                 onNext={() => setStep(2)}
-                currency={org.currency}
               />
             )}
 
@@ -199,6 +252,9 @@ export default function BookingFlow({ org }: BookingFlowProps) {
 
             {step === 3 && (
               <StepDateTime
+                slug={org.slug}
+                serviceId={selectedSvc!}
+                staffId={selectedStaff}
                 selectedDate={selectedDate}
                 selectedTime={selectedTime}
                 onDateChange={setSelectedDate}
@@ -224,13 +280,11 @@ export default function BookingFlow({ org }: BookingFlowProps) {
                 time={selectedTime}
                 customer={customer}
                 orgName={org.name}
-                currency={org.currency}
               />
             )}
           </div>
         </div>
       </div>
-
     </>
   );
 }

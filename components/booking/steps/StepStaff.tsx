@@ -1,15 +1,11 @@
 import { UserRound } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { OrgStaff } from "@/types";
+import { PublicOrgStaff } from "@/types";
 import { Button } from "@/components/ui/button";
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface StepStaffProps {
-  staff: OrgStaff[];
+  staff: PublicOrgStaff[];
   selected: string | null;
   onSelect: (id: string | null) => void;
   onNext: () => void;
@@ -27,7 +23,9 @@ export default function StepStaff({
 
   return (
     <div>
-      <h2 className="text-xl font-bold text-foreground">Choose a Staff Member</h2>
+      <h2 className="text-xl font-bold text-foreground">
+        Choose a Staff Member
+      </h2>
       <p className="text-sm text-muted-foreground mt-1 mb-6">
         Pick someone you prefer, or let us assign the first available.
       </p>
@@ -41,7 +39,7 @@ export default function StepStaff({
             "w-full text-left rounded-xl p-4 transition-all duration-150",
             noPreferenceSelected
               ? "border-2 border-brand-500 bg-brand-500/[0.08] dark:bg-brand-500/10"
-              : "border-2 border-border hover:border-brand-400/50 hover:bg-muted/30"
+              : "border-2 border-border hover:border-brand-400/50 hover:bg-muted/30",
           )}
         >
           <div className="flex items-center gap-3">
@@ -54,7 +52,7 @@ export default function StepStaff({
                   "text-sm font-semibold",
                   noPreferenceSelected
                     ? "text-brand-600 dark:text-brand-400"
-                    : "text-foreground"
+                    : "text-foreground",
                 )}
               >
                 No preference
@@ -77,7 +75,8 @@ export default function StepStaff({
         {/* Staff members */}
         {staff.map((member) => {
           const isSelected = selected === member.id;
-          const initials = member.name
+          const fullName = `${member.firstName} ${member.lastName}`;
+          const initials = fullName
             .split(" ")
             .map((n) => n[0])
             .join("")
@@ -93,13 +92,13 @@ export default function StepStaff({
                 "w-full text-left rounded-xl p-4 transition-all duration-150",
                 isSelected
                   ? "border-2 border-brand-500 bg-brand-500/[0.08] dark:bg-brand-500/10"
-                  : "border-2 border-border hover:border-brand-400/50 hover:bg-muted/30"
+                  : "border-2 border-border hover:border-brand-400/50 hover:bg-muted/30",
               )}
             >
               <div className="flex items-center gap-3">
                 <Avatar className="h-10 w-10 shrink-0 ring-2 ring-brand-500/10">
-                  {member.photo && (
-                    <AvatarImage src={member.photo} alt={member.name} />
+                  {member.photoUrl && (
+                    <AvatarImage src={member.photoUrl} alt={fullName} />
                   )}
                   <AvatarFallback className="bg-brand-500/10 text-brand-600 dark:text-brand-400 text-sm font-semibold">
                     {initials}
@@ -111,13 +110,10 @@ export default function StepStaff({
                       "text-sm font-semibold",
                       isSelected
                         ? "text-brand-600 dark:text-brand-400"
-                        : "text-foreground"
+                        : "text-foreground",
                     )}
                   >
-                    {member.name}
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-0.5 capitalize">
-                    {member.role.toLowerCase()}
+                    {fullName}
                   </p>
                 </div>
               </div>

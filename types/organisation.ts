@@ -20,6 +20,7 @@ export type Organisation = {
   minLeadTimeMins: number;
   maxPerSlot: number;
   cancelPolicy: string | null;
+  voiceAiEnabled: boolean;
   planTier: PlanTier;
   createdAt: string;
 };

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
@@ -62,8 +62,8 @@ import {
   Customer,
   DashboardBookingInputs,
   dashboardBookingSchema,
+  dashboardEditBookingSchema,
 } from "@/types";
-import { format as formatDate } from "date-fns";
 import { useServices } from "@/hooks/api/useServices";
 import { useStaff } from "@/hooks/api/useStaff";
 import {
@@ -126,7 +126,9 @@ const NewBookingModal = ({
     reset,
     formState: { errors },
   } = useForm<DashboardBookingInputs>({
-    resolver: zodResolver(dashboardBookingSchema),
+    resolver: (isEdit
+      ? zodResolver(dashboardEditBookingSchema)
+      : zodResolver(dashboardBookingSchema)) as Resolver<DashboardBookingInputs>,
     mode: "onSubmit",
     reValidateMode: "onChange",
     defaultValues: {
@@ -143,10 +145,9 @@ const NewBookingModal = ({
   const selectedDate = watch("date");
   const watchedServiceId = watch("serviceId");
   const watchedStaffId = watch("staffId");
-  const watchedDate = watch("date");
   const watchedTime = watch("time");
 
-  const dateParam = watchedDate ? formatDate(watchedDate, "yyyy-MM-dd") : "";
+  const dateParam = selectedDate ? format(selectedDate, "yyyy-MM-dd") : "";
   const selectedService = services?.find((s) => s.id === watchedServiceId);
 
   useEffect(() => {
@@ -162,7 +163,7 @@ const NewBookingModal = ({
         customerEmail: booking.customer?.email ?? "customer@bookwise.io",
         customerPhone: booking.customer?.phone ?? "0000000",
         serviceId: booking.serviceId,
-        staffId: booking.userId ?? "",
+        staffId: booking.userId ?? booking.user?.id ?? "",
         date: d,
         time: timeSlot,
         note: booking.note ?? "",
@@ -614,10 +615,18 @@ const NewBookingModal = ({
                   <Field>
                     <FieldLabel>Time Slot *</FieldLabel>
                     <FieldDescription>
-                      Available slots for {format(selectedDate, "MMM d")}
+                      {watchedStaffId
+                        ? `Available slots for ${format(selectedDate, "MMM d")}`
+                        : "Assign a staff member to see available slots"}
                     </FieldDescription>
                     <div className="grid grid-cols-4 gap-2 mt-1">
-                      {slotsLoading ? (
+                      {!watchedStaffId ? (
+                        <div className="col-span-4 text-sm text-muted-foreground text-center py-4">
+                          {isEdit
+                            ? "This booking has no staff assigned. Please select a staff member above."
+                            : "Select a staff member to see available slots."}
+                        </div>
+                      ) : slotsLoading ? (
                         Array.from({ length: 8 }).map((_, i) => (
                           <Skeleton key={i} className="h-9 rounded-lg" />
                         ))

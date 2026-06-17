@@ -32,6 +32,23 @@ export const useBookings = (filters: BookingsFilters) => {
   });
 };
 
+export const useStaleBookingsCount = () => {
+  const { isSignedIn, isLoaded } = useUser();
+  const api = useApi();
+
+  return useQuery<{ total: number }>({
+    queryKey: ["stale-bookings-count"],
+    queryFn: async () => {
+      const res = await api.get(endpoints.bookings, {
+        params: { isStale: true, page: 1, limit: 1 },
+      });
+      return { total: res.data.total };
+    },
+    enabled: isLoaded && !!isSignedIn,
+    refetchInterval: 5 * 60 * 1000, // refresh every 5 min so freshly-stale bookings appear
+  });
+};
+
 export const useCreateBooking = () => {
   const api = useApi();
   const queryClient = useQueryClient();
@@ -44,7 +61,7 @@ export const useCreateBooking = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["bookings"] });
       queryClient.invalidateQueries({ queryKey: queryKeys.tierUsage });
-
+      queryClient.invalidateQueries({ queryKey: ["stale-bookings-count"] });
       showSuccessToast("Booking has been created");
     },
     onError: (error) => showErrorToast(error),
@@ -64,6 +81,7 @@ export const useUpdateBooking = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["bookings"] });
+      queryClient.invalidateQueries({ queryKey: ["stale-bookings-count"] });
       showSuccessToast("Booking status has been updated");
     },
     onError: (error) => showErrorToast(error),
@@ -81,6 +99,7 @@ export const useEditBooking = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["bookings"] });
+      queryClient.invalidateQueries({ queryKey: ["stale-bookings-count"] });
       showSuccessToast("Booking has been updated");
     },
     onError: (error) => showErrorToast(error),

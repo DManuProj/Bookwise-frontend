@@ -1,4 +1,5 @@
 import { BookingsFilters, CustomersFilters } from "@/types";
+import { LeaveFilters } from "@/types/leave";
 
 /**
  * Centralized query keys for TanStack Query cache.
@@ -45,7 +46,18 @@ export const queryKeys = {
   //notificaton
   notifications: ["notifications"] as const,
 
+  // public booking
+  publicOrg: (slug: string) => ["public-org", slug] as const,
+  publicSlots: (
+    slug: string,
+    serviceId: string,
+    staffId: string | null,
+    date: string,
+  ) => ["public-slots", slug, serviceId, staffId ?? "any", date] as const,
+
   // billing
   billing: ["billing"] as const,
   tierUsage: ["tier-usage"] as const,
+
+  leave: (filters: LeaveFilters) => ["leave", filters] as const,
 } as const;

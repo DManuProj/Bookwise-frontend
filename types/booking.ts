@@ -6,6 +6,7 @@ import type { User } from "./user";
 
 // ═══════════════════════════════════════════════════
 // ENTITIES
+//booking through mannual booking dashboard
 // ═══════════════════════════════════════════════════
 
 export type Booking = {
@@ -58,6 +59,7 @@ export type BookingsFilters = {
   from?: string;
   to?: string;
   page?: number;
+  isStale?: boolean;
   limit?: number;
 };
 
@@ -87,6 +89,19 @@ export const dashboardBookingSchema = z.object({
 });
 
 export type DashboardBookingInputs = z.infer<typeof dashboardBookingSchema>;
+
+// Dashboard: owner editing an existing booking (no customer fields)
+export const dashboardEditBookingSchema = z.object({
+  serviceId: z.string().min(1, "Please select a service"),
+  staffId: z.string().min(1, "Please select a staff member"),
+  date: z.date({ required_error: "Please select a date" }),
+  time: z.string().min(1, "Please select a time slot"),
+  note: z.string().optional(),
+});
+
+export type DashboardEditBookingInputs = z.infer<
+  typeof dashboardEditBookingSchema
+>;
 
 // Payload for POST /bookings
 export type CreateBookingPayload = {
@@ -120,8 +135,10 @@ export type EditBookingPayload = {
 export type FilterState = {
   search: string;
   status: string;
-  date: string;
   staff: string;
   page: number;
   pageSize: number;
+  dateFrom: Date | undefined;
+  dateTo: Date | undefined;
+  stale: boolean;
 };

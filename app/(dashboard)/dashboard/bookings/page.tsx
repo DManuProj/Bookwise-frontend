@@ -32,14 +32,23 @@ import {
 } from "@/components/ui/select";
 import { useTierUsage } from "@/hooks/api/useBilling";
 import Link from "next/link";
+import BookingsStaleBanner from "@/components/dashboard/bookings/BookingsStaleBanner";
+
+const todayStart = () => {
+  const d = new Date();
+  d.setHours(0, 0, 0, 0);
+  return d;
+};
 
 const DEFAULT_FILTERS: FilterState = {
   search: "",
   status: "all",
-  date: "all",
   staff: "all",
   page: 1,
   pageSize: 10,
+  dateFrom: undefined,
+  dateTo: undefined,
+  stale: false,
 };
 
 // Convert UI filter state → API params
@@ -53,39 +62,19 @@ const buildApiFilters = (state: FilterState, search: string): ApiFilters => {
   if (state.status !== "all") apiFilters.status = state.status as BookingStatus;
   if (state.staff !== "all") apiFilters.staffId = state.staff;
 
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  switch (state.date) {
-    case "today": {
-      const end = new Date(today);
-      end.setHours(23, 59, 59, 999);
-      apiFilters.from = today.toISOString();
-      apiFilters.to = end.toISOString();
-      break;
-    }
-    case "tomorrow": {
-      const start = new Date(today);
-      start.setDate(start.getDate() + 1);
-      const end = new Date(start);
-      end.setHours(23, 59, 59, 999);
+  // Stale overrides the date range
+  if (state.stale) {
+    apiFilters.isStale = true;
+  } else {
+    if (state.dateFrom) {
+      const start = new Date(state.dateFrom);
+      start.setHours(0, 0, 0, 0);
       apiFilters.from = start.toISOString();
-      apiFilters.to = end.toISOString();
-      break;
     }
-    case "week": {
-      const end = new Date(today);
-      end.setDate(end.getDate() + 7);
-      apiFilters.from = today.toISOString();
+    if (state.dateTo) {
+      const end = new Date(state.dateTo);
+      end.setHours(23, 59, 59, 999);
       apiFilters.to = end.toISOString();
-      break;
-    }
-    case "month": {
-      const end = new Date(today);
-      end.setMonth(end.getMonth() + 1);
-      apiFilters.from = today.toISOString();
-      apiFilters.to = end.toISOString();
-      break;
     }
   }
 
@@ -93,7 +82,10 @@ const buildApiFilters = (state: FilterState, search: string): ApiFilters => {
 };
 
 const BookingsPage = () => {
-  const [filters, setFilters] = useState<FilterState>(DEFAULT_FILTERS);
+  const [filters, setFilters] = useState<FilterState>({
+    ...DEFAULT_FILTERS,
+    dateFrom: todayStart(),
+  });
   const [newBookingOpen, setNewBookingOpen] = useState(false);
 
   //  Debounce search (don't fire API call on every keystroke)
@@ -106,7 +98,7 @@ const BookingsPage = () => {
   );
 
   // Fetch — hook handles loading, caching, refetching
-  const { data, isPending, isFetching } = useBookings(apiFilters);
+  const { data, isPending } = useBookings(apiFilters);
   const isLoading = isPending;
 
   const { data: usage } = useTierUsage();
@@ -121,8 +113,11 @@ const BookingsPage = () => {
   const hasActiveFilters =
     filters.search !== "" ||
     filters.status !== "all" ||
-    filters.date !== "all" ||
-    filters.staff !== "all";
+    filters.staff !== "all" ||
+    filters.stale ||
+    // dateFrom differs from default (today) OR dateTo is set
+    filters.dateFrom?.getTime() !== todayStart().getTime() ||
+    filters.dateTo !== undefined;
 
   //  Handlers — separate "filter changed" vs "page changed"
   const updateFilters = (changes: Partial<FilterState>) => {
@@ -133,7 +128,17 @@ const BookingsPage = () => {
     setFilters((prev) => ({ ...prev, page }));
   };
 
-  const handleClear = () => setFilters(DEFAULT_FILTERS);
+  const handleClear = () =>
+    setFilters({ ...DEFAULT_FILTERS, dateFrom: todayStart() });
+
+  const handleReviewStale = () => {
+    setFilters({
+      ...DEFAULT_FILTERS,
+      stale: true,
+      dateFrom: undefined,
+      dateTo: undefined,
+    });
+  };
 
   return (
     <div className="p-6 lg:p-8 max-w-7xl mx-auto space-y-6">
@@ -172,6 +177,11 @@ const BookingsPage = () => {
           </Button>
         )}
       </div>
+
+      <BookingsStaleBanner
+        onReview={handleReviewStale}
+        active={filters.stale}
+      />
 
       {/* Filters */}
       <BookingsFilters

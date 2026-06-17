@@ -7,6 +7,7 @@ import { useUser, useClerk } from "@clerk/nextjs";
 import { useTheme } from "next-themes";
 import {
   CalendarDays,
+  CalendarOff,
   ChevronsLeft,
   ChevronsRight,
   LayoutDashboard,
@@ -38,6 +39,7 @@ const NAV_ITEMS = [
   { href: "/dashboard/bookings", icon: CalendarDays, label: "Bookings" },
   { href: "/dashboard/services", icon: Scissors, label: "Services" },
   { href: "/dashboard/staff", icon: Users, label: "Staff" },
+  { href: "/dashboard/leave", icon: CalendarOff, label: "Leave" },
   { href: "/dashboard/customers", icon: UserRound, label: "Customers" },
   { href: "/dashboard/settings", icon: Settings, label: "Settings" },
 ];

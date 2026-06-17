@@ -23,7 +23,13 @@ import { useState } from "react";
 import ConfirmationModal from "@/components/shared/ConfirmationModal";
 import NewBookingModal from "@/components/dashboard/bookings/NewBookingModal";
 
-const BookingRowActions = ({ booking }: { booking: Booking }) => {
+const BookingRowActions = ({
+  booking,
+  isPast = false,
+}: {
+  booking: Booking;
+  isPast?: boolean;
+}) => {
   const { status, id: bookingId } = booking;
   const { mutate: updateStatus, isPending } = useUpdateBooking();
 
@@ -38,6 +44,20 @@ const BookingRowActions = ({ booking }: { booking: Booking }) => {
     updateStatus({ id: bookingId, status: "CANCELLED" });
     setOpenModal(false);
   };
+
+  // Action visibility rules
+  // Edit:         PENDING + not past
+  // Confirm:      PENDING + not past
+  // Mark Complete: CONFIRMED (any time) OR past PENDING (back-fill)
+  // Mark No-Show: CONFIRMED (any time) OR past PENDING
+  // Cancel:       PENDING or CONFIRMED (any time — past included so admin can close out)
+  const canEdit = status === "PENDING" && !isPast;
+  const canConfirm = status === "PENDING" && !isPast;
+  const canMarkComplete =
+    status === "CONFIRMED" || (status === "PENDING" && isPast);
+  const canMarkNoShow =
+    status === "CONFIRMED" || (status === "PENDING" && isPast);
+  const canCancel = status === "PENDING" || status === "CONFIRMED";
 
   return (
     <>
@@ -57,11 +77,15 @@ const BookingRowActions = ({ booking }: { booking: Booking }) => {
         <DropdownMenuContent align="end" className="w-48">
           <DropdownMenuLabel className="text-xs text-muted-foreground font-normal">
             Booking #{bookingId.slice(0, 6)}
+            {isPast && (status === "PENDING" || status === "CONFIRMED") && (
+              <span className="block text-[10px] text-orange-600 dark:text-orange-400 mt-0.5">
+                Past booking — close it out
+              </span>
+            )}
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
 
-          {/* Edit — only if pending */}
-          {status === "PENDING" && (
+          {canEdit && (
             <DropdownMenuItem
               onClick={() => setEditOpen(true)}
               className="gap-2"
@@ -71,8 +95,7 @@ const BookingRowActions = ({ booking }: { booking: Booking }) => {
             </DropdownMenuItem>
           )}
 
-          {/* Confirm — only if pending */}
-          {status === "PENDING" && (
+          {canConfirm && (
             <DropdownMenuItem
               onClick={() => handleStatusChange("CONFIRMED")}
               className="gap-2 text-brand-600 dark:text-brand-400 focus:text-brand-600 focus:bg-brand-500/8"
@@ -82,8 +105,7 @@ const BookingRowActions = ({ booking }: { booking: Booking }) => {
             </DropdownMenuItem>
           )}
 
-          {/* Mark complete — only if confirmed */}
-          {status === "CONFIRMED" && (
+          {canMarkComplete && (
             <DropdownMenuItem
               onClick={() => handleStatusChange("COMPLETED")}
               className="gap-2"
@@ -93,8 +115,7 @@ const BookingRowActions = ({ booking }: { booking: Booking }) => {
             </DropdownMenuItem>
           )}
 
-          {/* Mark no-show — only if confirmed */}
-          {status === "CONFIRMED" && (
+          {canMarkNoShow && (
             <DropdownMenuItem
               onClick={() => handleStatusChange("NO_SHOW")}
               className="gap-2"
@@ -104,8 +125,7 @@ const BookingRowActions = ({ booking }: { booking: Booking }) => {
             </DropdownMenuItem>
           )}
 
-          {/* Cancel — pending or confirmed only */}
-          {(status === "PENDING" || status === "CONFIRMED") && (
+          {canCancel && (
             <>
               <DropdownMenuSeparator />
               <DropdownMenuItem

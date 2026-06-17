@@ -13,6 +13,7 @@ export type Service = {
   price: number;
   buffer: number;
   isActive: boolean;
+  isDeleted: boolean;
 };
 
 // ═══════════════════════════════════════════════════

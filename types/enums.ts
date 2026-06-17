@@ -12,8 +12,7 @@ export type BookingStatus =
   | "CONFIRMED"
   | "CANCELLED"
   | "COMPLETED"
-  | "NO_SHOW"
-  | "RESCHEDULED";
+  | "NO_SHOW";
 
 export type BookingSource = "MANUAL_CUSTOMER" | "VOICE_AI" | "MANUAL_DASHBOARD";
 

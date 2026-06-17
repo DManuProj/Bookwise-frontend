@@ -55,11 +55,6 @@ const STATUS_CONFIG: Record<
     icon: XCircle,
     className: "bg-rose-500/10  text-rose-600  dark:text-rose-400  border-0",
   },
-  RESCHEDULED: {
-    label: "Rescheduled",
-    icon: CircleDot,
-    className: "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-0",
-  },
 };
 
 const SOURCE_CONFIG: Record<
@@ -124,13 +119,23 @@ const BookingsTable = ({ bookings }: { bookings: Booking[] }) => {
               ? `${booking.user.firstName} ${booking.user.lastName}`
               : null;
 
+            // Past + still-unresolved = needs visual flag
+            const isPast = new Date(booking.endAt) < new Date();
+            const isUnresolved =
+              booking.status === "PENDING" || booking.status === "CONFIRMED";
+            const isStale = isPast && isUnresolved;
+
             return (
               <TableRow
                 key={booking.id}
-                className="hover:bg-muted/40 transition-colors border-b border-border last:border-0"
+                className={`hover:bg-muted/40 transition-colors border-b border-border last:border-0 ${
+                  isStale ? "bg-muted/20" : ""
+                }`}
               >
                 {/* Customer */}
-                <TableCell className="px-6 py-3">
+                <TableCell
+                  className={`px-6 py-3 ${isStale ? "opacity-60" : ""}`}
+                >
                   <p className="text-sm font-medium text-foreground">
                     {booking.customer?.name ?? "—"}
                   </p>
@@ -140,7 +145,7 @@ const BookingsTable = ({ bookings }: { bookings: Booking[] }) => {
                 </TableCell>
 
                 {/* Service */}
-                <TableCell className="py-3">
+                <TableCell className={`py-3 ${isStale ? "opacity-60" : ""}`}>
                   <p className="text-sm text-foreground">
                     {booking.service?.name ?? "—"}
                   </p>
@@ -150,7 +155,7 @@ const BookingsTable = ({ bookings }: { bookings: Booking[] }) => {
                 </TableCell>
 
                 {/* Date & Time */}
-                <TableCell className="py-3">
+                <TableCell className={`py-3 ${isStale ? "opacity-60" : ""}`}>
                   <p className="text-sm font-medium text-foreground">
                     {formatBookingTime(booking.startAt)}
                   </p>
@@ -160,7 +165,7 @@ const BookingsTable = ({ bookings }: { bookings: Booking[] }) => {
                 </TableCell>
 
                 {/* Staff */}
-                <TableCell className="py-3">
+                <TableCell className={`py-3 ${isStale ? "opacity-60" : ""}`}>
                   {staffName ? (
                     <p className="text-sm text-foreground">{staffName}</p>
                   ) : (
@@ -171,7 +176,7 @@ const BookingsTable = ({ bookings }: { bookings: Booking[] }) => {
                 </TableCell>
 
                 {/* Source */}
-                <TableCell className="py-3">
+                <TableCell className={`py-3 ${isStale ? "opacity-60" : ""}`}>
                   <div className="flex items-center gap-1.5">
                     <SourceIcon className={`h-4 w-4 ${source.className}`} />
                     <span className="text-sm text-muted-foreground">
@@ -182,17 +187,24 @@ const BookingsTable = ({ bookings }: { bookings: Booking[] }) => {
 
                 {/* Status */}
                 <TableCell className="py-3">
-                  <Badge
-                    className={`text-xs flex items-center gap-1 w-fit ${status.className}`}
-                  >
-                    <StatusIcon className="h-3 w-3" />
-                    {status.label}
-                  </Badge>
+                  <div className="flex items-center gap-1.5">
+                    <Badge
+                      className={`text-xs flex items-center gap-1 w-fit ${status.className}`}
+                    >
+                      <StatusIcon className="h-3 w-3" />
+                      {status.label}
+                    </Badge>
+                    {isStale && (
+                      <Badge className="text-[10px] bg-orange-500/10 text-orange-600 dark:text-orange-400 border-0 w-fit">
+                        Past
+                      </Badge>
+                    )}
+                  </div>
                 </TableCell>
 
                 {/* Actions */}
                 <TableCell className="py-3 pr-4">
-                  <BookingRowActions booking={booking} />
+                  <BookingRowActions booking={booking} isPast={isPast} />
                 </TableCell>
               </TableRow>
             );

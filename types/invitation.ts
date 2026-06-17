@@ -1,7 +1,7 @@
 import type { InviteStatus } from "./enums";
 
 // ═══════════════════════════════════════════════════
-// MISC
+// Invitation
 // ═══════════════════════════════════════════════════
 
 export type Invitation = {

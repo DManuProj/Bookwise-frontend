@@ -1,76 +1,52 @@
-import { Organisation, OrgData } from "@/types";
-import BookingFlow from "@/components/booking/BookingFlow";
+"use client";
 
-const ORG_DATA: Organisation = {
-  name: "Glow Beauty Studio",
-  slug: "glow-beauty",
-  description:
-    "A luxury beauty studio specializing in skincare, nail art and relaxation treatments in the heart of the city.",
-  phone: "+1 555 0200",
-  address: "456 Park Ave, New York, NY 10022",
-  logo: null,
-  services: [
-    {
-      id: "s1",
-      name: "Classic Facial",
-      duration: 60,
-      price: 75,
-      buffer: 15,
-      description: "Deep cleansing facial for radiant skin",
-    },
-    {
-      id: "s2",
-      name: "Gel Manicure",
-      duration: 45,
-      price: 45,
-      buffer: 10,
-      description: "Long-lasting gel polish with nail shaping",
-    },
-    {
-      id: "s3",
-      name: "Swedish Massage",
-      duration: 60,
-      price: 90,
-      buffer: 15,
-      description: "Full body relaxation massage",
-    },
-    {
-      id: "s4",
-      name: "Eyebrow Threading",
-      duration: 15,
-      price: 20,
-      buffer: 5,
-      description: "",
-    },
-    {
-      id: "s5",
-      name: "Lash Extensions",
-      duration: 90,
-      price: 120,
-      buffer: 20,
-      description: "Volume or classic lash sets",
-    },
-    {
-      id: "s6",
-      name: "Hot Stone Massage",
-      duration: 75,
-      price: 110,
-      buffer: 15,
-      description: "Heated stone therapy for deep relaxation",
-    },
-  ],
-  staff: [
-    { id: "st1", name: "Sophie", role: "OWNER", photo: null },
-    { id: "st2", name: "Rachel", role: "MEMBER", photo: null },
-    { id: "st3", name: "Mia", role: "MEMBER", photo: null },
-  ],
+import { useParams } from "next/navigation";
+import { notFound } from "next/navigation";
+import BookingFlow from "@/components/booking/BookingFlow";
+import { Skeleton } from "@/components/ui/skeleton";
+import { usePublicOrg } from "@/hooks/api/usePublicBooking";
+
+const BookingPageSkeleton = () => (
+  <div className="max-w-5xl mx-auto px-4 py-8">
+    <div className="grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-8">
+      {/* Left panel */}
+      <div className="rounded-2xl border border-border bg-card p-6">
+        <div className="flex items-center gap-3 mb-4">
+          <Skeleton className="h-14 w-14 rounded-2xl shrink-0" />
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-32" />
+            <Skeleton className="h-3 w-20" />
+          </div>
+        </div>
+        <Skeleton className="h-3 w-full mb-2" />
+        <Skeleton className="h-3 w-3/4 mb-5" />
+        <Skeleton className="h-3 w-40 mb-2" />
+        <Skeleton className="h-3 w-28" />
+      </div>
+
+      {/* Right panel */}
+      <div className="rounded-2xl border border-border bg-card p-6 lg:p-8">
+        <Skeleton className="h-2 w-full rounded-full mb-8" />
+        <Skeleton className="h-6 w-40 mb-2" />
+        <Skeleton className="h-4 w-56 mb-6" />
+        <div className="space-y-3">
+          {[0, 1, 2].map((i) => (
+            <Skeleton key={i} className="h-20 w-full rounded-xl" />
+          ))}
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
+const BookingPage = () => {
+  const { slug } = useParams<{ slug: string }>();
+  const { data: org, isPending, isError } = usePublicOrg(slug);
+
+  if (isPending) return <BookingPageSkeleton />;
+  if (isError || !org) return notFound();
+
+  return <BookingFlow org={org} />;
 };
 
-export default async function BookingPage({
-  params,
-}: {
-  params: Promise<{ slug: string }>;
-}) {
-  await params;
-  return <BookingFlow org={ORG_DATA} />;
-}
+export default BookingPage;

@@ -5,14 +5,14 @@ import { CalendarDays, Bot } from "lucide-react";
 interface BookingChannelSelectorProps {
   onManual: () => void;
   onVoice: () => void;
-  voiceAiEnabled: boolean;
+  aiBookingAvailable: boolean;
   orgName: string;
 }
 
 export default function BookingChannelSelector({
   onManual,
   onVoice,
-  voiceAiEnabled,
+  aiBookingAvailable,
 }: BookingChannelSelectorProps) {
   const manualCard = (
     <div
@@ -25,7 +25,9 @@ export default function BookingChannelSelector({
       <div className="w-14 h-14 rounded-2xl bg-muted group-hover:bg-brand-500/10 transition-colors flex items-center justify-center mx-auto mb-4">
         <CalendarDays className="h-7 w-7 text-muted-foreground group-hover:text-brand-500 transition-colors" />
       </div>
-      <p className="text-base font-semibold text-foreground mb-2">Book Manually</p>
+      <p className="text-base font-semibold text-foreground mb-2">
+        Book Manually
+      </p>
       <p className="text-sm text-muted-foreground leading-relaxed">
         Choose your service, staff and time slot step by step.
       </p>
@@ -49,7 +51,9 @@ export default function BookingChannelSelector({
       <div className="w-14 h-14 rounded-2xl bg-brand-500/15 group-hover:bg-brand-500/20 transition-colors flex items-center justify-center mx-auto mb-4">
         <Bot className="h-7 w-7 text-brand-500" />
       </div>
-      <p className="text-base font-semibold text-foreground mb-2">Book with AI</p>
+      <p className="text-base font-semibold text-foreground mb-2">
+        Book with AI
+      </p>
       <p className="text-sm text-muted-foreground leading-relaxed">
         Talk to our AI assistant and get booked in seconds.
       </p>
@@ -68,7 +72,7 @@ export default function BookingChannelSelector({
         Choose your preferred booking method
       </p>
 
-      {voiceAiEnabled ? (
+      {aiBookingAvailable ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-2xl mx-auto">
           {manualCard}
           {voiceCard}
