@@ -2,7 +2,7 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 
 interface LogoProps {
-  variant?: "light" | "dark";
+  variant?: "light" | "dark" | "auto";
   size?: "sm" | "md" | "lg";
   asLink?: boolean;
   href?: string;
@@ -17,7 +17,7 @@ const sizes = {
 };
 
 const Logo = ({
-  variant = "dark",
+  variant = "auto",
   size = "md",
   asLink = false,
   href = "/",
@@ -25,7 +25,13 @@ const Logo = ({
   className,
 }: LogoProps) => {
   const { icon, text } = sizes[size];
-  const textColor = variant === "light" ? "text-white" : "text-slate-900";
+
+  const textColor =
+    variant === "light"
+      ? "text-white"
+      : variant === "dark"
+        ? "text-slate-900"
+        : "text-foreground";
 
   const content = (
     <>

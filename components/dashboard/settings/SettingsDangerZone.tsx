@@ -43,24 +43,26 @@ const SettingsDangerZone = () => {
 
   return (
     <>
-      <Card className="border-destructive/30 dark:border-destructive/20">
+      <Card className="rounded-2xl border-destructive/30 dark:border-destructive/20">
         <CardContent className="p-6">
-          <div className="flex items-center gap-2 mb-1">
-            <AlertTriangle className="h-4 w-4 text-destructive" />
-            <h2 className="text-base font-semibold text-destructive">
+          <div className="mb-1 flex items-center gap-2">
+            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-destructive/10 text-destructive">
+              <AlertTriangle className="h-4 w-4" />
+            </span>
+            <h2 className="text-base font-bold tracking-tight text-destructive">
               Danger Zone
             </h2>
           </div>
-          <p className="text-sm text-muted-foreground mb-6">
+          <p className="mb-6 text-sm text-muted-foreground">
             Permanent actions that cannot be undone.
           </p>
 
-          <div className="flex items-center justify-between p-4 rounded-xl border border-destructive/20 bg-destructive/5">
+          <div className="flex items-center justify-between rounded-xl border border-destructive/20 bg-destructive/5 p-4">
             <div>
               <p className="text-sm font-medium text-foreground">
                 Delete Organisation
               </p>
-              <p className="text-xs text-muted-foreground mt-0.5">
+              <p className="mt-0.5 text-xs text-muted-foreground">
                 Permanently delete your business, all bookings, staff and data.
               </p>
             </div>
@@ -68,7 +70,7 @@ const SettingsDangerZone = () => {
               type="button"
               variant="destructive"
               size="sm"
-              className="rounded-xl shrink-0 ml-4"
+              className="ml-4 shrink-0 rounded-xl"
               onClick={() => setConfirmOpen(true)}
             >
               Delete
@@ -79,11 +81,13 @@ const SettingsDangerZone = () => {
 
       {/* Confirm dialog */}
       <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
-        <DialogContent className="max-w-md p-0 gap-0 overflow-hidden">
-          <DialogHeader className="px-6 pt-6 pb-4 border-b border-border">
-            <div className="flex items-center gap-2 mb-1">
-              <AlertTriangle className="h-5 w-5 text-destructive" />
-              <DialogTitle className="text-lg font-bold text-destructive">
+        <DialogContent className="max-w-md gap-0 overflow-hidden rounded-2xl p-0">
+          <DialogHeader className="border-b border-border px-6 pb-4 pt-6">
+            <div className="mb-1 flex items-center gap-2">
+              <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-destructive/10 text-destructive">
+                <AlertTriangle className="h-5 w-5" />
+              </span>
+              <DialogTitle className="text-lg font-bold tracking-tight text-destructive">
                 Delete Organisation
               </DialogTitle>
             </div>
@@ -94,12 +98,12 @@ const SettingsDangerZone = () => {
             </DialogDescription>
           </DialogHeader>
 
-          <div className="px-6 py-5 space-y-4">
-            <div className="p-3 rounded-xl bg-destructive/8 border border-destructive/20">
-              <p className="text-xs text-destructive font-medium">
+          <div className="space-y-4 px-6 py-5">
+            <div className="rounded-xl border border-destructive/20 bg-destructive/10 p-3">
+              <p className="text-xs font-medium text-destructive">
                 This will delete:
               </p>
-              <ul className="text-xs text-destructive/80 mt-1 space-y-0.5 list-disc list-inside">
+              <ul className="mt-1 list-inside list-disc space-y-0.5 text-xs text-destructive/80">
                 <li>All bookings and customer data</li>
                 <li>All services and working hours</li>
                 <li>All staff accounts and invitations</li>
@@ -108,9 +112,9 @@ const SettingsDangerZone = () => {
             </div>
 
             <div>
-              <p className="text-sm text-foreground mb-2">
+              <p className="mb-2 text-sm text-foreground">
                 Type{" "}
-                <span className="font-mono font-semibold text-foreground bg-muted px-1.5 py-0.5 rounded">
+                <span className="rounded bg-muted px-1.5 py-0.5 font-mono font-semibold text-foreground">
                   {org?.name}
                 </span>{" "}
                 to confirm:
@@ -119,15 +123,15 @@ const SettingsDangerZone = () => {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 placeholder={org?.name}
-                className={isMatch ? "border-destructive" : ""}
+                className={`h-11 rounded-xl ${isMatch ? "border-destructive" : ""}`}
               />
             </div>
           </div>
 
-          <div className="px-6 py-4 border-t border-border flex gap-3">
+          <div className="flex gap-3 border-t border-border px-6 py-4">
             <Button
               variant="outline"
-              className="flex-1 rounded-xl"
+              className="h-11 flex-1 rounded-xl"
               onClick={() => {
                 setConfirmOpen(false);
                 setInput("");
@@ -138,7 +142,7 @@ const SettingsDangerZone = () => {
             </Button>
             <Button
               variant="destructive"
-              className="flex-1 rounded-xl disabled:opacity-50"
+              className="h-11 flex-1 rounded-xl disabled:opacity-50"
               onClick={handleDelete}
               disabled={!isMatch || isPending || !org}
             >

@@ -5,18 +5,18 @@
    THEME (Tailwind v4 tokens)
 ───────────────────────────────────────────── */
 @theme {
-  /* Brand */
-  --color-brand-50: #ecfdf5;
-  --color-brand-100: #d1fae5;
-  --color-brand-200: #a7f3d0;
-  --color-brand-300: #6ee7b7;
-  --color-brand-400: #34d399;
-  --color-brand-500: #10b981;
-  --color-brand-600: #059669;
-  --color-brand-700: #047857;
-  --color-brand-800: #065f46;
-  --color-brand-900: #064e3b;
-  --color-brand-950: #022c22;
+  /* Brand — refined emerald (Aurora / Eclipse) */
+  --color-brand-50: #ecfaf4;
+  --color-brand-100: #d2f3e6;
+  --color-brand-200: #a6e7ce;
+  --color-brand-300: #6fd6b0;
+  --color-brand-400: #34c194;
+  --color-brand-500: #0e9b74;
+  --color-brand-600: #0b815f;
+  --color-brand-700: #096c50;
+  --color-brand-800: #075841;
+  --color-brand-900: #0a4233;
+  --color-brand-950: #04291f;
 
   /* Fonts */
   --font-sans: var(--font-geist-sans);
@@ -106,68 +106,71 @@
 
 /* ─────────────────────────────────────────────
    BASE VARIABLES (shadcn style)
+   Light = "Aurora"  ·  Dark = "Eclipse"
 ───────────────────────────────────────────── */
 @layer base {
   :root {
-    --background: 150 40% 98%;
-    --foreground: 220 25% 18%;
+    /* AURORA — refined off-white, green-charcoal ink */
+    --background: 60 11% 98%;
+    --foreground: 158 20% 9%;
 
     --card: 0 0% 100%;
-    --card-foreground: 220 25% 18%;
+    --card-foreground: 158 20% 9%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 220 25% 18%;
+    --popover-foreground: 158 20% 9%;
 
-    --primary: 160 84% 39%;
+    --primary: 163 83% 33%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 150 35% 94%;
-    --secondary-foreground: 160 50% 20%;
+    --secondary: 156 45% 94%;
+    --secondary-foreground: 163 60% 18%;
 
-    --muted: 150 25% 94%;
-    --muted-foreground: 215 16% 46%;
+    --muted: 150 28% 95%;
+    --muted-foreground: 155 9% 40%;
 
-    --accent: 160 84% 39%;
+    --accent: 163 83% 33%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 150 25% 88%;
-    --input: 150 25% 88%;
-    --ring: 160 84% 39%;
+    --border: 155 16% 90%;
+    --input: 155 16% 90%;
+    --ring: 163 83% 33%;
 
     --radius: 0.625rem;
   }
 
   .dark {
-    --background: 220 60% 6%;
-    --foreground: 150 15% 93%;
+    /* ECLIPSE — near-black with green undertone, brighter emerald */
+    --background: 160 20% 5%;
+    --foreground: 150 16% 93%;
 
-    --card: 220 50% 9%;
-    --card-foreground: 150 15% 93%;
+    --card: 160 20% 8%;
+    --card-foreground: 150 16% 93%;
 
-    --popover: 220 50% 8%;
-    --popover-foreground: 150 15% 93%;
+    --popover: 160 22% 7%;
+    --popover-foreground: 150 16% 93%;
 
-    --primary: 160 84% 42%;
+    --primary: 163 76% 42%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 220 40% 12%;
-    --secondary-foreground: 150 20% 82%;
+    --secondary: 160 30% 12%;
+    --secondary-foreground: 150 18% 82%;
 
-    --muted: 220 40% 11%;
-    --muted-foreground: 215 18% 52%;
+    --muted: 160 26% 11%;
+    --muted-foreground: 155 12% 60%;
 
-    --accent: 160 84% 42%;
+    --accent: 163 76% 42%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 62% 50%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 40% 15%;
-    --input: 220 40% 15%;
-    --ring: 160 84% 42%;
+    --border: 160 18% 15%;
+    --input: 160 18% 15%;
+    --ring: 163 76% 42%;
   }
 }
 
@@ -181,13 +184,15 @@
   }
 
   body {
-    background: linear-gradient(160deg, #f0fdf8 0%, #ffffff 100%);
+    /* Aurora — subtle warm off-white into faint mint */
+    background: linear-gradient(165deg, #fbfbfa 0%, #f1f8f4 100%);
     color: hsl(var(--foreground));
     min-height: 100vh;
   }
 
   .dark body {
-    background: linear-gradient(135deg, #020617 0%, #0f172a 100%);
+    /* Eclipse — near-black green stage */
+    background: radial-gradient(120% 80% at 50% -10%, #0d1714 0%, #080b0a 55%);
   }
 
   :focus-visible {
@@ -211,7 +216,7 @@
 
   /* Always-dark footer — consistent in both light and dark modes */
   .bg-footer {
-    background-color: hsl(220 55% 6%);
+    background-color: hsl(160 22% 5%);
   }
 
   /* Card surfaces */
@@ -231,9 +236,13 @@
     box-shadow: 0 4px 24px -4px hsl(var(--primary) / 0.1);
   }
 
-  /* Brand gradient text — works in all browsers */
+  /* Brand gradient text — mint → emerald (Eclipse highlight) */
   .text-gradient {
-    background: linear-gradient(135deg, hsl(var(--primary)), var(--color-brand-400));
+    background: linear-gradient(
+      100deg,
+      var(--color-brand-300),
+      hsl(var(--primary))
+    );
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;

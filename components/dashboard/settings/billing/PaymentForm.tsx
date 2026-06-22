@@ -1,8 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
-  CardElement,
   useStripe,
   useElements,
   CardCvcElement,
@@ -10,7 +9,7 @@ import {
   CardExpiryElement,
 } from "@stripe/react-stripe-js";
 import { Button } from "@/components/ui/button";
-import { Loader2, AlertCircle, CheckCircle2 } from "lucide-react";
+import { Loader2, AlertCircle, CheckCircle2, ShieldCheck } from "lucide-react";
 import { useSubscribe } from "@/hooks/api/useBilling";
 import { useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/queryKeys";
@@ -24,15 +23,25 @@ interface PaymentFormProps {
   onSuccess: () => void;
   onCancel: () => void;
 }
-const stripeFieldStyle = {
-  base: {
-    fontSize: "15px",
-    color: "#0f172a",
-    fontFamily: "system-ui, -apple-system, sans-serif",
-    "::placeholder": { color: "#94a3b8" },
-  },
-  invalid: { color: "#ef4444" },
+
+// Read live theme tokens so Stripe's iframe text matches Aurora / Eclipse.
+const getStripeFieldStyle = () => {
+  const styles = getComputedStyle(document.documentElement);
+  const read = (v: string, fallback: string) =>
+    styles.getPropertyValue(v).trim()
+      ? `hsl(${styles.getPropertyValue(v).trim()})`
+      : fallback;
+  return {
+    base: {
+      fontSize: "15px",
+      color: read("--foreground", "#0f172a"),
+      fontFamily: "system-ui, -apple-system, sans-serif",
+      "::placeholder": { color: read("--muted-foreground", "#94a3b8") },
+    },
+    invalid: { color: "#ef4444" },
+  };
 };
+
 const PaymentForm = ({
   plan,
   period,
@@ -47,6 +56,21 @@ const PaymentForm = ({
   const [isProcessing, setIsProcessing] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [succeeded, setSucceeded] = useState(false);
+  const [fieldStyle, setFieldStyle] = useState(() =>
+    typeof window !== "undefined" ? getStripeFieldStyle() : undefined,
+  );
+
+  // Re-read tokens on mount and whenever the theme class flips
+  useEffect(() => {
+    const apply = () => setFieldStyle(getStripeFieldStyle());
+    apply();
+    const observer = new MutationObserver(apply);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+    return () => observer.disconnect();
+  }, []);
 
   const displayPrice =
     period === "yearly" ? plan.yearlyPrice : plan.monthlyPrice;
@@ -119,27 +143,37 @@ const PaymentForm = ({
   // Success state — modal closes via onSuccess() after the setTimeout
   if (succeeded) {
     return (
-      <div className="flex flex-col items-center py-8 gap-3">
-        <CheckCircle2 className="h-12 w-12 text-brand-500" />
-        <h3 className="text-lg font-bold text-foreground">
+      <div className="flex flex-col items-center gap-3 py-8">
+        <div className="relative flex h-16 w-16 items-center justify-center">
+          <span className="absolute inset-0 animate-ping rounded-full bg-brand-500/20 opacity-60" />
+          <div className="relative flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-brand-400 to-brand-600 text-white shadow-lg shadow-brand-500/30">
+            <CheckCircle2 className="h-8 w-8" />
+          </div>
+        </div>
+        <h3 className="text-lg font-bold tracking-tight text-foreground">
           Welcome to {plan.name}
         </h3>
-        <p className="text-sm text-muted-foreground text-center">
+        <p className="text-center text-sm text-muted-foreground">
           Your subscription is active.
         </p>
       </div>
     );
   }
 
+  const fieldWrapClass =
+    "rounded-xl border border-input bg-background p-3.5 transition focus-within:border-brand-500 focus-within:ring-2 focus-within:ring-brand-500/20";
+
   return (
     <div className="space-y-5">
       {/* Plan summary */}
-      <div className="rounded-xl bg-muted/50 p-4">
-        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">
+      <div className="rounded-xl border border-brand-500/15 bg-brand-500/[0.06] p-4 dark:bg-brand-500/10">
+        <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-brand-700 dark:text-brand-300">
           You are subscribing to
         </p>
         <div className="flex items-baseline justify-between">
-          <h3 className="text-lg font-bold text-foreground">{plan.name}</h3>
+          <h3 className="text-lg font-bold tracking-tight text-foreground">
+            {plan.name}
+          </h3>
           <p className="text-sm text-foreground">
             <span className="font-bold">${displayPrice.toFixed(2)}</span>
             <span className="text-muted-foreground">
@@ -149,67 +183,63 @@ const PaymentForm = ({
         </div>
       </div>
 
-      {/* Card input */}
-      <div>
-        {/* Card input — split into three fields */}
-        <div className="space-y-3">
+      {/* Card input — split into three fields */}
+      <div className="space-y-3">
+        <div>
+          <label className="mb-2 block text-sm font-medium text-foreground">
+            Card number
+          </label>
+          <div className={fieldWrapClass}>
+            <CardNumberElement
+              options={{
+                style: fieldStyle,
+                placeholder: "1234 1234 1234 1234",
+              }}
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="text-sm font-medium text-foreground block mb-2">
-              Card number
+            <label className="mb-2 block text-sm font-medium text-foreground">
+              Expiry
             </label>
-            <div className="rounded-xl border bg-background p-3.5 focus-within:ring-2 focus-within:ring-brand-500/20 focus-within:border-brand-500 transition">
-              <CardNumberElement
+            <div className={fieldWrapClass}>
+              <CardExpiryElement
                 options={{
-                  style: stripeFieldStyle,
-                  placeholder: "1234 1234 1234 1234",
+                  style: fieldStyle,
+                  placeholder: "MM / YY",
                 }}
               />
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="text-sm font-medium text-foreground block mb-2">
-                Expiry
-              </label>
-              <div className="rounded-xl border bg-background p-3.5 focus-within:ring-2 focus-within:ring-brand-500/20 focus-within:border-brand-500 transition">
-                <CardExpiryElement
-                  options={{
-                    style: stripeFieldStyle,
-                    placeholder: "MM / YY",
-                  }}
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="text-sm font-medium text-foreground block mb-2">
-                CVC
-              </label>
-              <div className="rounded-xl border bg-background p-3.5 focus-within:ring-2 focus-within:ring-brand-500/20 focus-within:border-brand-500 transition">
-                <CardCvcElement
-                  options={{
-                    style: stripeFieldStyle,
-                    placeholder: "123",
-                  }}
-                />
-              </div>
+          <div>
+            <label className="mb-2 block text-sm font-medium text-foreground">
+              CVC
+            </label>
+            <div className={fieldWrapClass}>
+              <CardCvcElement
+                options={{
+                  style: fieldStyle,
+                  placeholder: "123",
+                }}
+              />
             </div>
           </div>
-
-          <p className="text-xs text-muted-foreground">
-            Test card: 4242 4242 4242 4242 · any future expiry · any CVC
-          </p>
         </div>
+
+        <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+          <ShieldCheck className="h-3.5 w-3.5" />
+          Test card: 4242 4242 4242 4242 · any future expiry · any CVC
+        </p>
       </div>
 
       {/* Error display */}
       {errorMessage && (
-        <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-3 flex gap-2 items-start">
-          <AlertCircle className="h-4 w-4 text-red-500 shrink-0 mt-0.5" />
-          <p className="text-sm text-red-600 dark:text-red-400">
-            {errorMessage}
-          </p>
+        <div className="flex items-start gap-2 rounded-xl border border-destructive/30 bg-destructive/10 p-3">
+          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-destructive" />
+          <p className="text-sm text-destructive">{errorMessage}</p>
         </div>
       )}
 
@@ -219,14 +249,14 @@ const PaymentForm = ({
           variant="outline"
           onClick={onCancel}
           disabled={isProcessing}
-          className="flex-1 rounded-xl"
+          className="h-11 flex-1 rounded-xl"
         >
           Cancel
         </Button>
         <Button
           onClick={handleSubmit}
           disabled={!stripe || isProcessing}
-          className="flex-1 rounded-xl bg-brand-500 hover:bg-brand-600 text-white"
+          className="h-11 flex-1 rounded-xl bg-primary font-semibold text-primary-foreground shadow-lg shadow-brand-500/25 transition-all duration-200 hover:bg-brand-600 disabled:opacity-70"
         >
           {isProcessing ? (
             <Loader2 className="h-4 w-4 animate-spin" />

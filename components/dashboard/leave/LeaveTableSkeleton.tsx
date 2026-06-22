@@ -15,42 +15,52 @@ const LeaveTableSkeleton = ({
   rows?: number;
   showStaffColumn?: boolean;
 }) => (
-  <div className="rounded-xl border border-border overflow-hidden">
+  <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
     <Table>
       <TableHeader>
-        <TableRow className="bg-muted/40 hover:bg-muted/40">
+        <TableRow className="bg-muted/50 hover:bg-muted/50">
           {showStaffColumn && (
-            <TableHead className="w-[220px] pl-6 font-medium">Staff</TableHead>
+            <TableHead className="w-[220px] pl-6 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              Staff
+            </TableHead>
           )}
-          <TableHead className="font-medium">Dates</TableHead>
-          <TableHead className="font-medium">Duration</TableHead>
-          <TableHead className="font-medium">Reason</TableHead>
-          <TableHead className="font-medium">Status</TableHead>
-          <TableHead className="font-medium w-10" />
+          <TableHead className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            Dates
+          </TableHead>
+          <TableHead className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            Duration
+          </TableHead>
+          <TableHead className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            Reason
+          </TableHead>
+          <TableHead className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            Status
+          </TableHead>
+          <TableHead className="w-10" />
         </TableRow>
       </TableHeader>
       <TableBody>
         {Array.from({ length: rows }, (_, i) => (
           <TableRow key={i} className="border-b border-border last:border-0">
             {showStaffColumn && (
-              <TableCell className="px-6 py-3">
+              <TableCell className="px-6 py-3.5">
                 <Skeleton className="h-3.5 w-32" />
               </TableCell>
             )}
-            <TableCell className="py-3 space-y-1.5">
+            <TableCell className="space-y-1.5 py-3.5">
               <Skeleton className="h-3.5 w-28" />
               <Skeleton className="h-3 w-20" />
             </TableCell>
-            <TableCell className="py-3">
+            <TableCell className="py-3.5">
               <Skeleton className="h-3.5 w-16" />
             </TableCell>
-            <TableCell className="py-3">
+            <TableCell className="py-3.5">
               <Skeleton className="h-3.5 w-40" />
             </TableCell>
-            <TableCell className="py-3">
+            <TableCell className="py-3.5">
               <Skeleton className="h-5 w-20 rounded-full" />
             </TableCell>
-            <TableCell className="py-3 pr-4">
+            <TableCell className="py-3.5 pr-4">
               <Skeleton className="h-8 w-8 rounded-md" />
             </TableCell>
           </TableRow>

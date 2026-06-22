@@ -90,13 +90,13 @@ const SettingsBusinessInfo = () => {
       >
         <div className="space-y-4">
           <div className="flex items-center gap-4">
-            <Skeleton className="w-14 h-14 rounded-2xl shrink-0" />
+            <Skeleton className="h-14 w-14 shrink-0 rounded-2xl" />
             <div className="space-y-2">
               <Skeleton className="h-4 w-40" />
               <Skeleton className="h-3 w-24" />
             </div>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+          <div className="grid grid-cols-1 gap-3 pt-1 sm:grid-cols-2">
             <div className="space-y-1">
               <Skeleton className="h-3 w-10" />
               <Skeleton className="h-4 w-32" />
@@ -184,12 +184,12 @@ const SettingsBusinessInfo = () => {
         /* ── Read-only ── */
         <div className="space-y-4">
           <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-2xl bg-brand-500/10 flex items-center justify-center shrink-0 border border-brand-500/20 overflow-hidden">
+            <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-brand-500/20 bg-brand-500/10">
               {org.logo ? (
                 <img
                   src={org.logo}
                   alt="Logo"
-                  className="w-full h-full object-cover"
+                  className="h-full w-full object-cover"
                 />
               ) : (
                 <span className="text-base font-bold text-brand-600 dark:text-brand-400">
@@ -206,16 +206,16 @@ const SettingsBusinessInfo = () => {
               </p>
             </div>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+          <div className="grid grid-cols-1 gap-3 pt-1 sm:grid-cols-2">
             {[
               { label: "Phone", value: org.phone },
               { label: "Description", value: org.description },
               { label: "Address", value: org.address },
             ].map(({ label, value }) => (
               <div key={label}>
-                <p className="text-xs text-muted-foreground mb-0.5">{label}</p>
+                <p className="mb-0.5 text-xs text-muted-foreground">{label}</p>
                 <p
-                  className={`text-sm ${value ? "text-foreground" : "text-muted-foreground italic"}`}
+                  className={`text-sm ${value ? "text-foreground" : "italic text-muted-foreground"}`}
                 >
                   {value ?? "N/A"}
                 </p>
@@ -227,16 +227,16 @@ const SettingsBusinessInfo = () => {
         /* ── Edit mode ── */
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           {/* Logo */}
-          <div className="flex items-center gap-4 pb-4 border-b border-border">
+          <div className="flex items-center gap-4 border-b border-border pb-4">
             <div
-              className="w-16 h-16 rounded-2xl border-2 border-dashed border-border hover:border-brand-400 transition-colors cursor-pointer flex items-center justify-center shrink-0 overflow-hidden bg-brand-500/5"
+              className="flex h-16 w-16 shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded-2xl border-2 border-dashed border-border bg-brand-500/5 transition-colors hover:border-brand-400"
               onClick={() => fileInputRef.current?.click()}
             >
               {logoPreview ? (
                 <img
                   src={logoPreview}
                   alt="Logo"
-                  className="w-full h-full object-cover"
+                  className="h-full w-full object-cover"
                 />
               ) : (
                 <span className="text-sm font-bold text-brand-600 dark:text-brand-400">
@@ -245,10 +245,10 @@ const SettingsBusinessInfo = () => {
               )}
             </div>
             <div>
-              <p className="text-sm font-medium text-foreground mb-0.5">
+              <p className="mb-0.5 text-sm font-medium text-foreground">
                 Business Logo
               </p>
-              <p className="text-xs text-muted-foreground mb-2">
+              <p className="mb-2 text-xs text-muted-foreground">
                 PNG, JPG or WebP · Max 2MB
               </p>
               <div className="flex gap-2">
@@ -256,10 +256,10 @@ const SettingsBusinessInfo = () => {
                   type="button"
                   variant="outline"
                   size="sm"
-                  className="text-xs h-7"
+                  className="h-8 rounded-lg text-xs"
                   onClick={() => fileInputRef.current?.click()}
                 >
-                  <Upload className="h-3 w-3 mr-1" />
+                  <Upload className="mr-1 h-3 w-3" />
                   Upload
                 </Button>
                 {logo && (
@@ -267,13 +267,13 @@ const SettingsBusinessInfo = () => {
                     type="button"
                     variant="ghost"
                     size="sm"
-                    className="text-xs h-7 text-muted-foreground hover:text-destructive"
+                    className="h-8 rounded-lg text-xs text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
                     onClick={() => {
                       setLogo(null);
                       setLogoPreview(org.logo);
                     }}
                   >
-                    <X className="h-3 w-3 mr-1" />
+                    <X className="mr-1 h-3 w-3" />
                     Remove
                   </Button>
                 )}
@@ -288,13 +288,13 @@ const SettingsBusinessInfo = () => {
             />
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <Field>
               <FieldLabel>Business Name *</FieldLabel>
-              <div className="relative">
-                <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+              <div className="group relative">
+                <Building2 className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground transition-colors group-focus-within:text-brand-500" />
                 <Input
-                  className="pl-9"
+                  className="h-11 rounded-xl pl-9"
                   aria-invalid={!!errors.businessName}
                   {...register("businessName")}
                 />
@@ -311,7 +311,10 @@ const SettingsBusinessInfo = () => {
                   setValue("businessType", v, { shouldValidate: true });
                 }}
               >
-                <SelectTrigger aria-invalid={!!errors.businessType}>
+                <SelectTrigger
+                  aria-invalid={!!errors.businessType}
+                  className="h-11 rounded-xl"
+                >
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -328,11 +331,11 @@ const SettingsBusinessInfo = () => {
 
           <Field>
             <FieldLabel>Business Phone *</FieldLabel>
-            <div className="relative">
-              <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+            <div className="group relative">
+              <Phone className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground transition-colors group-focus-within:text-brand-500" />
               <Input
                 type="tel"
-                className="pl-9"
+                className="h-11 rounded-xl pl-9"
                 aria-invalid={!!errors.phone}
                 {...register("phone")}
               />
@@ -343,7 +346,7 @@ const SettingsBusinessInfo = () => {
           <Field>
             <FieldLabel>Description</FieldLabel>
             <Textarea
-              className="resize-none h-20"
+              className="h-20 resize-none rounded-xl"
               placeholder="Brief description of your business..."
               {...register("description")}
             />
@@ -351,10 +354,10 @@ const SettingsBusinessInfo = () => {
 
           <Field>
             <FieldLabel>Address</FieldLabel>
-            <div className="relative">
-              <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+            <div className="group relative">
+              <MapPin className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground transition-colors group-focus-within:text-brand-500" />
               <Input
-                className="pl-9"
+                className="h-11 rounded-xl pl-9"
                 placeholder="e.g. 123 Main St, Auckland"
                 {...register("address")}
               />

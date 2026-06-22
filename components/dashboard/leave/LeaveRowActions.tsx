@@ -68,7 +68,7 @@ const LeaveRowActions = ({ leave, isAdmin, currentUserId }: Props) => {
           <Button
             variant="ghost"
             size="icon"
-            className="h-8 w-8 text-muted-foreground hover:text-foreground"
+            className="h-8 w-8 rounded-lg border border-transparent text-muted-foreground transition-colors hover:border-border hover:bg-muted hover:text-foreground data-[state=open]:border-brand-500/30 data-[state=open]:bg-brand-500/10 data-[state=open]:text-brand-600 dark:data-[state=open]:text-brand-400"
             disabled={isPending}
           >
             <MoreHorizontal className="h-4 w-4" />
@@ -76,8 +76,8 @@ const LeaveRowActions = ({ leave, isAdmin, currentUserId }: Props) => {
           </Button>
         </DropdownMenuTrigger>
 
-        <DropdownMenuContent align="end" className="w-44">
-          <DropdownMenuLabel className="text-xs text-muted-foreground font-normal">
+        <DropdownMenuContent align="end" className="w-44 rounded-xl p-1.5">
+          <DropdownMenuLabel className="px-2 text-xs font-normal text-muted-foreground">
             Leave #{leave.id.slice(0, 6)}
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
@@ -86,7 +86,7 @@ const LeaveRowActions = ({ leave, isAdmin, currentUserId }: Props) => {
           {canManageOthers && (
             <DropdownMenuItem
               onClick={handleApprove}
-              className="gap-2 text-brand-600 dark:text-brand-400 focus:text-brand-600 focus:bg-brand-500/8"
+              className="cursor-pointer gap-2.5 rounded-lg text-brand-600 dark:text-brand-400 focus:bg-brand-500/10 focus:text-brand-600 dark:focus:text-brand-400 [&>svg]:text-brand-600 dark:[&>svg]:text-brand-400"
             >
               <CheckCircle2 className="h-4 w-4" />
               Approve
@@ -97,7 +97,7 @@ const LeaveRowActions = ({ leave, isAdmin, currentUserId }: Props) => {
           {canManageOthers && (
             <DropdownMenuItem
               onClick={() => setConfirmModal("reject")}
-              className="gap-2"
+              className="cursor-pointer gap-2.5 rounded-lg [&>svg]:text-muted-foreground focus:[&>svg]:text-foreground"
             >
               <XCircle className="h-4 w-4" />
               Reject
@@ -110,7 +110,7 @@ const LeaveRowActions = ({ leave, isAdmin, currentUserId }: Props) => {
               {canManageOthers && <DropdownMenuSeparator />}
               <DropdownMenuItem
                 onClick={() => setConfirmModal("cancel")}
-                className="gap-2 text-destructive focus:text-destructive focus:bg-destructive/8"
+                className="cursor-pointer gap-2.5 rounded-lg text-destructive focus:bg-destructive/10 focus:text-destructive [&>svg]:text-destructive"
               >
                 <Ban className="h-4 w-4" />
                 Cancel

@@ -21,7 +21,15 @@ interface VoiceBookingWidgetProps {
   onClose: () => void;
 }
 
-const WAVE_DELAYS = ["0ms", "150ms", "300ms", "450ms", "600ms"];
+const WAVE_DELAYS = [
+  "0ms",
+  "120ms",
+  "240ms",
+  "360ms",
+  "480ms",
+  "360ms",
+  "240ms",
+];
 
 type CallStatus =
   | "idle"
@@ -293,20 +301,29 @@ export default function VoiceBookingWidget({
     onClose();
   };
 
+  const features = [
+    { icon: Scissors, label: "Book any service" },
+    { icon: CalendarDays, label: "Check real-time availability" },
+    { icon: Clock, label: "Available 24/7" },
+  ];
+
   return (
-    <div className="rounded-2xl border border-brand-500/20 dark:border-brand-500/10 bg-card p-6 relative">
+    <div className="relative overflow-hidden rounded-3xl border border-brand-500/20 bg-card p-6 shadow-xl shadow-brand-500/10 dark:border-brand-500/10">
       <style>{`
-      @keyframes wave {
-        from { height: 8px; }
-        to   { height: 32px; }
-      }
-    `}</style>
+        @keyframes wave {
+          from { height: 6px; }
+          to   { height: 30px; }
+        }
+      `}</style>
+
+      {/* ambient glow */}
+      <div className="pointer-events-none absolute -right-12 -top-16 h-44 w-44 rounded-full bg-brand-500/15 blur-3xl" />
 
       <Button
         variant="ghost"
         size="icon"
         onClick={handleClose}
-        className="absolute top-4 right-4"
+        className="absolute right-3 top-3 z-10 rounded-full text-muted-foreground hover:text-foreground"
         aria-label="Close"
       >
         <X className="h-4 w-4" />
@@ -314,57 +331,59 @@ export default function VoiceBookingWidget({
 
       {/* ── IDLE ── */}
       {status === "idle" && (
-        <>
-          <div className="w-16 h-16 rounded-full bg-brand-500/10 flex items-center justify-center mx-auto mb-4">
-            <Bot className="h-8 w-8 text-brand-500" />
+        <div className="relative">
+          <div className="relative mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-brand-400 to-brand-600 text-white shadow-lg shadow-brand-500/30">
+            <Bot className="h-8 w-8" />
           </div>
 
-          <h2 className="text-xl font-bold text-foreground text-center">
+          <h2 className="text-center text-xl font-bold tracking-tight text-foreground">
             AI Booking Assistant
           </h2>
-          <p className="text-sm text-muted-foreground text-center leading-relaxed mt-2 mb-6">
+          <p className="mx-auto mb-6 mt-2 max-w-xs text-center text-sm leading-relaxed text-muted-foreground text-pretty">
             Hi! I can help you book an appointment at{" "}
-            <span className="font-medium text-foreground">{orgName}</span>. Just
-            tap the button and tell me what you need.
+            <span className="font-semibold text-foreground">{orgName}</span>.
+            Just tap the button and tell me what you need.
           </p>
 
-          <div className="flex flex-col gap-2 mb-8">
-            <div className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl bg-muted/40 text-sm text-muted-foreground">
-              <Scissors className="h-4 w-4 text-brand-500 shrink-0" />
-              Book any service
-            </div>
-            <div className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl bg-muted/40 text-sm text-muted-foreground">
-              <CalendarDays className="h-4 w-4 text-brand-500 shrink-0" />
-              Check real-time availability
-            </div>
-            <div className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl bg-muted/40 text-sm text-muted-foreground">
-              <Clock className="h-4 w-4 text-brand-500 shrink-0" />
-              Available 24/7
-            </div>
+          <div className="mb-8 flex flex-col gap-2">
+            {features.map(({ icon: Icon, label }) => (
+              <div
+                key={label}
+                className="flex items-center gap-3 rounded-xl border border-border/60 bg-muted/40 px-3.5 py-2.5 text-sm text-muted-foreground"
+              >
+                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-brand-500/10 text-brand-600 dark:text-brand-400">
+                  <Icon className="h-4 w-4" />
+                </span>
+                {label}
+              </div>
+            ))}
           </div>
 
-          <div className="relative flex items-center justify-center mb-3">
+          <div className="relative mb-3 flex items-center justify-center">
+            <span className="absolute h-20 w-20 rounded-full bg-brand-500/15" />
             <button
               type="button"
               onClick={handleStartCall}
-              className="w-20 h-20 rounded-full bg-brand-500 hover:bg-brand-600 text-white shadow-lg shadow-brand-500/30 hover:scale-105 transition-all duration-200 flex items-center justify-center"
+              className="relative flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-brand-400 to-brand-600 text-white shadow-lg shadow-brand-500/40 transition-all duration-200 hover:scale-105 hover:shadow-xl hover:shadow-brand-500/50"
               aria-label="Start voice booking"
             >
               <Mic className="h-8 w-8" />
             </button>
           </div>
-          <p className="text-xs text-muted-foreground text-center">
+          <p className="text-center text-xs text-muted-foreground">
             Tap to start talking
           </p>
-        </>
+        </div>
       )}
 
       {/* ── CONNECTING ── */}
       {status === "connecting" && (
         <div className="flex flex-col items-center py-12">
-          <Loader2 className="h-12 w-12 text-brand-500 animate-spin mb-4" />
-          <p className="text-sm font-medium text-foreground">Connecting...</p>
-          <p className="text-xs text-muted-foreground mt-1">
+          <div className="relative mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-brand-500/10">
+            <Loader2 className="h-8 w-8 animate-spin text-brand-500" />
+          </div>
+          <p className="text-sm font-semibold text-foreground">Connecting…</p>
+          <p className="mt-1 text-xs text-muted-foreground">
             Allow microphone access if prompted
           </p>
         </div>
@@ -372,88 +391,91 @@ export default function VoiceBookingWidget({
 
       {/* ── ACTIVE ── */}
       {(status === "listening" || status === "assistant-speaking") && (
-        <>
+        <div className="relative">
           {/* ── Connecting gate: mic is live but Elliot hasn't spoken yet ── */}
           {!agentReady ? (
             <div className="flex flex-col items-center py-8">
-              <div className="relative flex items-center justify-center mb-4">
-                <span
-                  className="absolute w-20 h-20 rounded-full bg-brand-500/20 animate-ping"
-                  style={{ opacity: 0.6 }}
-                />
-                <div className="relative w-16 h-16 rounded-full bg-brand-500/10 flex items-center justify-center">
-                  <Loader2 className="h-8 w-8 text-brand-500 animate-spin" />
+              <div className="relative mb-4 flex items-center justify-center">
+                <span className="absolute h-20 w-20 animate-ping rounded-full bg-brand-500/20 opacity-60" />
+                <div className="relative flex h-16 w-16 items-center justify-center rounded-full bg-brand-500/10">
+                  <Loader2 className="h-8 w-8 animate-spin text-brand-500" />
                 </div>
               </div>
-              <p className="text-sm font-medium text-foreground text-center">
+              <p className="text-center text-sm font-semibold text-foreground">
                 Connecting to Elliot…
               </p>
-              <p className="text-xs text-muted-foreground text-center mt-1 mb-6">
+              <p className="mb-6 mt-1 text-center text-xs text-muted-foreground">
                 Please wait before speaking
               </p>
               <button
                 type="button"
                 onClick={handleEndCall}
-                className="text-xs text-muted-foreground hover:text-destructive transition-colors"
+                className="text-xs font-medium text-muted-foreground transition-colors hover:text-destructive"
               >
                 Cancel
               </button>
             </div>
           ) : (
             <>
-              <div className="relative flex items-center justify-center mb-3">
+              <div className="relative mb-4 flex items-center justify-center">
                 {status === "listening" && (
                   <>
+                    <span className="absolute inset-0 m-auto h-20 w-20 animate-ping rounded-full bg-brand-500/20 opacity-75" />
                     <span
-                      className="absolute inset-0 rounded-full bg-brand-500/20 animate-ping"
-                      style={{ opacity: 0.75 }}
-                    />
-                    <span
-                      className="absolute inset-0 rounded-full bg-brand-500/20 animate-ping"
-                      style={{ opacity: 0.5, animationDelay: "150ms" }}
+                      className="absolute inset-0 m-auto h-20 w-20 animate-ping rounded-full bg-brand-500/20 opacity-50"
+                      style={{ animationDelay: "150ms" }}
                     />
                   </>
                 )}
                 <button
                   type="button"
                   onClick={handleEndCall}
-                  className="relative w-20 h-20 rounded-full bg-brand-500 hover:bg-brand-600 text-white shadow-lg shadow-brand-500/30 flex items-center justify-center z-10"
+                  className="relative z-10 flex h-20 w-20 items-center justify-center rounded-full bg-destructive text-white shadow-lg shadow-destructive/30 transition-transform hover:scale-105"
                   aria-label="End call"
                 >
-                  <PhoneOff className="h-8 w-8" />
+                  <PhoneOff className="h-7 w-7" />
                 </button>
               </div>
 
-              <p className="text-sm font-medium text-brand-600 dark:text-brand-400 text-center">
-                {status === "listening"
-                  ? "Listening..."
-                  : "Elliot is speaking..."}
-              </p>
+              <div className="flex items-center justify-center gap-2">
+                <span className="relative flex h-2 w-2">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-brand-400 opacity-75" />
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-brand-500" />
+                </span>
+                <p className="text-center text-sm font-semibold text-brand-600 dark:text-brand-400">
+                  {status === "listening"
+                    ? "Listening…"
+                    : "Elliot is speaking…"}
+                </p>
+              </div>
 
-              {status === "assistant-speaking" && (
-                <div className="flex items-center justify-center gap-1 mt-4 mb-2">
-                  {WAVE_DELAYS.map((delay, i) => (
-                    <div
-                      key={i}
-                      className="w-1.5 rounded-full bg-brand-500"
-                      style={{
-                        animationName: "wave",
-                        animationDuration: "1s",
-                        animationIterationCount: "infinite",
-                        animationTimingFunction: "ease-in-out",
-                        animationDirection: "alternate",
-                        animationDelay: delay,
-                        height: "8px",
-                      }}
-                    />
-                  ))}
-                </div>
-              )}
+              {/* Wave — always reserves height, animates only while speaking */}
+              <div className="mb-2 mt-4 flex h-8 items-center justify-center gap-1">
+                {WAVE_DELAYS.map((delay, i) => (
+                  <div
+                    key={i}
+                    className="w-1.5 rounded-full bg-brand-500"
+                    style={
+                      status === "assistant-speaking"
+                        ? {
+                            animationName: "wave",
+                            animationDuration: "0.9s",
+                            animationIterationCount: "infinite",
+                            animationTimingFunction: "ease-in-out",
+                            animationDirection: "alternate",
+                            animationDelay: delay,
+                            height: "6px",
+                          }
+                        : { height: "6px", opacity: 0.4 }
+                    }
+                  />
+                ))}
+              </div>
 
-              <div className="max-h-48 overflow-y-auto space-y-2 mt-6 mb-2">
+              <div className="mb-2 mt-4 max-h-48 space-y-2 overflow-y-auto pr-1">
                 {transcript.length === 0 ? (
-                  <p className="text-xs text-muted-foreground text-center italic">
-                    Conversation will appear here...
+                  <p className="text-center text-xs italic text-muted-foreground">
+                    Conversation will appear here…
                   </p>
                 ) : (
                   transcript.map((item, i) => (
@@ -461,11 +483,11 @@ export default function VoiceBookingWidget({
                       key={i}
                       className={
                         item.role === "assistant"
-                          ? "rounded-xl bg-brand-500/10 p-3 text-sm text-brand-700 dark:text-brand-300"
-                          : "rounded-xl bg-muted/40 p-3 text-sm text-foreground"
+                          ? "rounded-2xl rounded-tl-sm border border-brand-500/20 bg-brand-500/10 p-3 text-sm text-foreground"
+                          : "ml-6 rounded-2xl rounded-tr-sm bg-muted p-3 text-sm text-foreground"
                       }
                     >
-                      <span className="text-xs font-semibold opacity-70 block mb-0.5">
+                      <span className="mb-0.5 block text-[11px] font-semibold uppercase tracking-wide text-brand-600 opacity-80 dark:text-brand-400">
                         {item.role === "assistant" ? "Elliot" : "You"}
                       </span>
                       {item.text}
@@ -475,24 +497,24 @@ export default function VoiceBookingWidget({
                 <div ref={transcriptEndRef} />
               </div>
 
-              <p className="text-xs text-muted-foreground text-center mt-4">
+              <p className="mt-4 text-center text-xs text-muted-foreground">
                 Tap the button to end the call
               </p>
             </>
           )}
-        </>
+        </div>
       )}
 
       {/* ── ENDED ── */}
       {status === "ended" && (
         <div className="flex flex-col items-center py-8">
-          <div className="w-16 h-16 rounded-full bg-brand-500/10 flex items-center justify-center mb-4">
-            <Bot className="h-8 w-8 text-brand-500" />
+          <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-brand-400 to-brand-600 text-white shadow-lg shadow-brand-500/30">
+            <Bot className="h-8 w-8" />
           </div>
-          <h3 className="text-lg font-bold text-foreground text-center mb-2">
+          <h3 className="mb-2 text-center text-lg font-bold tracking-tight text-foreground">
             Call ended
           </h3>
-          <p className="text-sm text-muted-foreground text-center mb-6">
+          <p className="mb-6 max-w-xs text-center text-sm leading-relaxed text-muted-foreground">
             Thanks for using voice booking. Check your email for confirmation if
             you booked an appointment.
           </p>
@@ -509,18 +531,18 @@ export default function VoiceBookingWidget({
       {/* ── ERROR ── */}
       {status === "error" && (
         <div className="flex flex-col items-center py-8">
-          <div className="w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center mb-4">
-            <MicOff className="h-8 w-8 text-destructive" />
+          <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-destructive/10 text-destructive">
+            <MicOff className="h-8 w-8" />
           </div>
-          <h3 className="text-lg font-bold text-foreground text-center mb-2">
+          <h3 className="mb-2 text-center text-lg font-bold tracking-tight text-foreground">
             Voice booking unavailable
           </h3>
-          <p className="text-sm text-muted-foreground text-center mb-6">
+          <p className="mb-6 max-w-xs text-center text-sm leading-relaxed text-muted-foreground">
             {errorMessage}
           </p>
           <Button
             onClick={onClose}
-            className="rounded-xl bg-brand-500 hover:bg-brand-600 text-white"
+            className="rounded-xl bg-primary text-primary-foreground hover:bg-brand-600"
           >
             Book manually instead
           </Button>

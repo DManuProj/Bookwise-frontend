@@ -15,7 +15,7 @@ const HomePage = () => {
       <LogoStrip />
       <Features />
       <HowItWorks />
-      <VoiceDemo />
+      {/* <VoiceDemo /> */}
       <Pricing />
       <Testimonials />
       <FAQ />

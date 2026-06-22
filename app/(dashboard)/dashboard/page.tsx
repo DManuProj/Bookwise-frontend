@@ -8,14 +8,13 @@ import UpcomingToday from "@/components/dashboard/overview/UpcomingToday";
 import BookingsByStatus from "@/components/dashboard/overview/BookingsByStatus";
 import TopServices from "@/components/dashboard/overview/TopServices";
 import OverviewSkelton from "@/components/dashboard/overview/OverviewSkeleton";
-// import a skeleton — match what other pages use (e.g. bookings/customers pages)
 
 const DashboardPage = () => {
   const { data, isPending, isError } = useOverview();
 
   // Loading state
   if (isPending) {
-    return <OverviewSkelton />; // we'll define this below
+    return <OverviewSkelton />;
   }
 
   // Error state

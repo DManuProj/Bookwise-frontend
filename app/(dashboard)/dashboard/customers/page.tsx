@@ -73,27 +73,31 @@ const CustomersPage = () => {
   const isLoading = isPending && !data;
 
   return (
-    <div className="p-6 lg:p-8 max-w-7xl mx-auto space-y-6">
-      <div className="flex items-center justify-between gap-4 flex-wrap">
+    <div className="mx-auto max-w-8xl space-y-6 p-6 lg:p-8">
+      {/* Header */}
+      <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-foreground mb-1">Customers</h1>
-          <p className="text-sm text-muted-foreground">
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">
+            Customers
+          </h1>
+          <p className="mt-1 text-sm text-muted-foreground">
             Customers are added automatically when bookings are made.
           </p>
         </div>
 
         <div className="relative w-full sm:w-72">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             placeholder="Search by name, email or phone..."
             value={filters.search}
             onChange={(e) => updateFilters({ search: e.target.value })}
-            className="pl-9 h-9"
+            className="h-10 rounded-xl border-transparent bg-muted/50 pl-9 focus-visible:border-brand-500/40 focus-visible:bg-card"
           />
         </div>
       </div>
 
-      <div className="flex items-center justify-between flex-wrap gap-3">
+      {/* Stats + count */}
+      <div className="flex flex-wrap items-center justify-between gap-3">
         {stats && <CustomersStatsStrip stats={stats} />}
 
         <div className="flex items-center gap-3">
@@ -104,7 +108,7 @@ const CustomersPage = () => {
             value={filters.pageSize.toString()}
             onValueChange={(v) => updateFilters({ pageSize: parseInt(v, 10) })}
           >
-            <SelectTrigger className="h-9 w-36 whitespace-nowrap">
+            <SelectTrigger className="h-9 w-36 whitespace-nowrap rounded-lg">
               <SelectValue placeholder="Page size" />
             </SelectTrigger>
             <SelectContent>
@@ -117,6 +121,7 @@ const CustomersPage = () => {
         </div>
       </div>
 
+      {/* Table / skeleton / empty */}
       <div>
         {isLoading ? (
           <CustomersTableSkeleton rows={5} />
@@ -127,6 +132,7 @@ const CustomersPage = () => {
         )}
       </div>
 
+      {/* Pagination */}
       {totalPages > 1 && (
         <Pagination>
           <PaginationContent>
@@ -141,7 +147,7 @@ const CustomersPage = () => {
               />
             </PaginationItem>
             <PaginationItem>
-              <span className="text-sm text-muted-foreground px-4">
+              <span className="px-4 text-sm text-muted-foreground">
                 Page {filters.page} of {totalPages}
               </span>
             </PaginationItem>

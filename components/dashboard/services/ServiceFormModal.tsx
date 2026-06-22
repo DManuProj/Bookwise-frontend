@@ -29,7 +29,14 @@ import {
   FieldLabel,
   FieldDescription,
 } from "@/components/ui/field";
-import { CheckCircle2, Loader2, DollarSign, Clock, Zap } from "lucide-react";
+import {
+  CheckCircle2,
+  Loader2,
+  DollarSign,
+  Clock,
+  Zap,
+  Tag,
+} from "lucide-react";
 import { ServiceFormInputs, serviceSchema, type Service } from "@/types";
 
 /* ── Zod schema ── */
@@ -142,10 +149,13 @@ const ServiceFormModal = ({
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-w-lg w-full p-0 gap-0 overflow-hidden">
+      <DialogContent className="w-full max-w-lg gap-0 overflow-hidden rounded-2xl p-0">
         {/* Fixed header */}
-        <DialogHeader className="px-6 pt-6 pb-4 border-b border-border shrink-0">
-          <DialogTitle className="text-xl font-bold">
+        <DialogHeader className="shrink-0 border-b border-border px-6 pb-4 pt-6">
+          <DialogTitle className="flex items-center gap-2.5 text-xl font-bold tracking-tight">
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-brand-400 to-brand-600 text-white shadow-md shadow-brand-500/30">
+              <Tag className="h-4.5 w-4.5" />
+            </span>
             {isEdit ? "Edit Service" : "Add Service"}
           </DialogTitle>
           <DialogDescription className="text-sm text-muted-foreground">
@@ -157,11 +167,11 @@ const ServiceFormModal = ({
 
         {/* Scrollable content */}
         <div
-          className="overflow-y-auto px-6 py-5 space-y-4
+          className="space-y-4 overflow-y-auto px-6 py-5
             [&::-webkit-scrollbar]:w-1.5
             [&::-webkit-scrollbar-track]:bg-transparent
-            [&::-webkit-scrollbar-thumb]:bg-brand-500/20
             [&::-webkit-scrollbar-thumb]:rounded-full
+            [&::-webkit-scrollbar-thumb]:bg-brand-500/20
             [&::-webkit-scrollbar-thumb:hover]:bg-brand-500/40"
           style={{ maxHeight: "calc(90vh - 160px)" }}
         >
@@ -175,6 +185,7 @@ const ServiceFormModal = ({
               <FieldLabel>Service Name *</FieldLabel>
               <Input
                 placeholder="e.g. Haircut, Deep Tissue Massage"
+                className="h-11 rounded-xl"
                 aria-invalid={!!errors.name}
                 {...register("name")}
               />
@@ -186,7 +197,7 @@ const ServiceFormModal = ({
               <Field>
                 <FieldLabel>
                   <span className="flex items-center gap-1">
-                    <Clock className="h-3 w-3" />
+                    <Clock className="h-3 w-3 text-brand-500" />
                     Duration *
                   </span>
                 </FieldLabel>
@@ -198,7 +209,10 @@ const ServiceFormModal = ({
                     setValue("durationMins", num, { shouldValidate: true });
                   }}
                 >
-                  <SelectTrigger aria-invalid={!!errors.durationMins}>
+                  <SelectTrigger
+                    aria-invalid={!!errors.durationMins}
+                    className="h-11 rounded-xl"
+                  >
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -215,18 +229,18 @@ const ServiceFormModal = ({
               <Field>
                 <FieldLabel>
                   <span className="flex items-center gap-1">
-                    <DollarSign className="h-3 w-3" />
+                    <DollarSign className="h-3 w-3 text-brand-500" />
                     Price * ({currency})
                   </span>
                 </FieldLabel>
                 <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground pointer-events-none">
+                  <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
                     {currency}
                   </span>
                   <Input
                     type="number"
                     min={0}
-                    className="pl-10"
+                    className="h-11 rounded-xl pl-10"
                     aria-invalid={!!errors.price}
                     {...register("price", { valueAsNumber: true })}
                   />
@@ -239,7 +253,7 @@ const ServiceFormModal = ({
             <Field>
               <FieldLabel>
                 <span className="flex items-center gap-1">
-                  <Zap className="h-3 w-3" />
+                  <Zap className="h-3 w-3 text-brand-500" />
                   Buffer Time
                 </span>
               </FieldLabel>
@@ -254,7 +268,7 @@ const ServiceFormModal = ({
                   setValue("buffer", num);
                 }}
               >
-                <SelectTrigger>
+                <SelectTrigger className="h-11 rounded-xl">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -275,18 +289,18 @@ const ServiceFormModal = ({
               </FieldDescription>
               <Textarea
                 placeholder="Brief description of this service..."
-                className="resize-none h-20 text-sm"
+                className="h-20 resize-none rounded-xl text-sm"
                 {...register("description")}
               />
             </Field>
 
             {/* Active toggle */}
-            <div className="flex items-center justify-between p-4 rounded-xl border border-border bg-muted/30">
+            <div className="flex items-center justify-between rounded-xl border border-border bg-muted/40 p-4">
               <div>
                 <Label className="text-sm font-medium text-foreground">
                   Active
                 </Label>
-                <p className="text-xs text-muted-foreground mt-0.5">
+                <p className="mt-0.5 text-xs text-muted-foreground">
                   Inactive services are hidden from the booking page
                 </p>
               </div>
@@ -302,11 +316,11 @@ const ServiceFormModal = ({
         </div>
 
         {/* Fixed footer */}
-        <div className="px-6 py-4 border-t border-border shrink-0 flex gap-3">
+        <div className="flex shrink-0 gap-3 border-t border-border px-6 py-4">
           <Button
             type="button"
             variant="outline"
-            className="flex-1 rounded-xl"
+            className="h-11 flex-1 rounded-xl"
             onClick={handleClose}
             disabled={isSubmitting}
           >
@@ -316,7 +330,7 @@ const ServiceFormModal = ({
             type="submit"
             form="service-form"
             disabled={isSubmitting}
-            className="flex-1 bg-brand-500 hover:bg-brand-600 text-white rounded-xl shadow-md shadow-brand-500/20 disabled:opacity-70"
+            className="h-11 flex-1 rounded-xl bg-primary font-semibold text-primary-foreground shadow-lg shadow-brand-500/25 transition-all duration-200 hover:bg-brand-600 disabled:opacity-70"
           >
             {isSubmitting ? (
               <>

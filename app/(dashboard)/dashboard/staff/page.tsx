@@ -18,7 +18,7 @@ import {
   useStaffChangeRole,
   useDeleteStaff,
   useResendInvitation,
-  useCancelInvitation, // ← will exist after you create it
+  useCancelInvitation,
 } from "@/hooks/api/useStaff";
 import { useTierUsage } from "@/hooks/api/useBilling";
 import Link from "next/link";
@@ -79,26 +79,28 @@ const StaffPage = () => {
   const isEmpty = !isPending && users.length === 0 && invitations.length === 0;
 
   return (
-    <div className="p-6 lg:p-8 max-w-7xl mx-auto space-y-6">
+    <div className="mx-auto max-w-8xl space-y-6 p-6 lg:p-8">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-foreground mb-1">Staff</h1>
-          <p className="text-sm text-muted-foreground">
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">
+            Staff
+          </h1>
+          <p className="mt-1 text-sm text-muted-foreground">
             Manage your team and their roles.
           </p>
         </div>
         {atCap ? (
           <div className="flex items-center gap-3">
-            <span className="text-xs text-muted-foreground">
+            <span className="rounded-full border border-border bg-card px-3 py-1.5 text-xs font-medium text-muted-foreground">
               {usage?.staff.used} / {usage?.staff.limit} staff used
             </span>
             <Button
               asChild
-              className="bg-brand-500 hover:bg-brand-600 text-white rounded-lg h-11 shadow-sm shadow-brand-500/20"
+              className="h-11 rounded-xl bg-primary font-semibold text-primary-foreground shadow-lg shadow-brand-500/25 transition-all duration-200 hover:bg-brand-600 hover:-translate-y-0.5"
             >
               <Link href="/dashboard/settings/billing">
-                <UserPlus className="h-4 w-4 mr-2" />
+                <UserPlus className="mr-2 h-4 w-4" />
                 Upgrade to add more
               </Link>
             </Button>
@@ -106,9 +108,9 @@ const StaffPage = () => {
         ) : (
           <Button
             onClick={() => setInviteOpen(true)}
-            className="bg-brand-500 hover:bg-brand-600 text-white rounded-lg h-11 shadow-sm shadow-brand-500/20"
+            className="h-11 rounded-xl bg-primary font-semibold text-primary-foreground shadow-lg shadow-brand-500/25 transition-all duration-200 hover:bg-brand-600 hover:-translate-y-0.5"
           >
-            <UserPlus className="h-4 w-4 mr-2" />
+            <UserPlus className="mr-2 h-4 w-4" />
             Invite Staff
           </Button>
         )}

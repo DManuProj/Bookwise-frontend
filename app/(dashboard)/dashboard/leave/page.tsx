@@ -3,7 +3,6 @@
 import { useMemo, useState } from "react";
 import { Plus, CalendarOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
 import { useLeave } from "@/hooks/api/useLeave";
 import { useMe } from "@/hooks/api/useMe";
 import LeaveFiltersComponent from "@/components/dashboard/leave/LeaveFilters";
@@ -48,14 +47,14 @@ export default function LeavePage() {
   }, [leaves, statusFilter]);
 
   return (
-    <div className="p-6 lg:p-8 max-w-7xl mx-auto">
+    <div className="mx-auto max-w-8xl p-6 lg:p-8">
       {/* Header */}
-      <div className="flex items-start justify-between gap-4 mb-6">
+      <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">
             {isAdmin ? "Staff Leave" : "My Leave"}
           </h1>
-          <p className="text-sm text-muted-foreground mt-1">
+          <p className="mt-1 text-sm text-muted-foreground">
             {isAdmin
               ? "Manage time-off requests across your team."
               : "Track your time-off requests."}
@@ -63,9 +62,9 @@ export default function LeavePage() {
         </div>
         <Button
           onClick={() => setRequestModalOpen(true)}
-          className="h-10 rounded-xl bg-brand-500 text-white hover:bg-brand-600 border-0 shadow-sm shadow-brand-500/20 shrink-0"
+          className="h-11 shrink-0 rounded-xl bg-primary font-semibold text-primary-foreground shadow-lg shadow-brand-500/25 transition-all duration-200 hover:bg-brand-600 hover:-translate-y-0.5"
         >
-          <Plus className="h-4 w-4 mr-2" />
+          <Plus className=" h-4 w-4" />
           Request Leave
         </Button>
       </div>
@@ -88,14 +87,14 @@ export default function LeavePage() {
       {isPending ? (
         <LeaveTableSkeleton showStaffColumn={isAdmin} />
       ) : filteredLeaves.length === 0 ? (
-        <div className="rounded-2xl border border-border bg-card p-12 text-center">
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-muted mb-4">
-            <CalendarOff className="h-6 w-6 text-muted-foreground" />
+        <div className="rounded-2xl border border-dashed border-border bg-card/40 p-12 text-center">
+          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-500/10 text-brand-600 dark:text-brand-400">
+            <CalendarOff className="h-6 w-6" />
           </div>
           <p className="text-sm font-semibold text-foreground">
             No leave requests
           </p>
-          <p className="text-xs text-muted-foreground mt-1 max-w-sm mx-auto">
+          <p className="mx-auto mt-1 max-w-sm text-xs text-muted-foreground">
             {statusFilter === "ALL"
               ? isAdmin
                 ? "No leave requests yet."

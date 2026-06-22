@@ -21,7 +21,15 @@ import {
 } from "@/components/ui/select";
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Mail, ShieldCheck, User, Loader2, Send, Info } from "lucide-react";
+import {
+  Mail,
+  ShieldCheck,
+  User,
+  Loader2,
+  Send,
+  Info,
+  UserPlus,
+} from "lucide-react";
 import type { SendInvitation } from "@/types";
 
 /* ── Schema ── */
@@ -113,9 +121,14 @@ const InviteStaffModal = ({ open, onClose, onInvite, isSubmitting }: Props) => {
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-w-md w-full p-0 gap-0 overflow-hidden">
-        <DialogHeader className="px-6 pt-6 pb-4 border-b border-border">
-          <DialogTitle className="text-xl font-bold">Invite Staff</DialogTitle>
+      <DialogContent className="w-full max-w-md gap-0 overflow-hidden rounded-2xl p-0">
+        <DialogHeader className="border-b border-border px-6 pb-4 pt-6">
+          <DialogTitle className="flex items-center gap-2.5 text-xl font-bold tracking-tight">
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-brand-400 to-brand-600 text-white shadow-md shadow-brand-500/30">
+              <UserPlus className="h-4.5 w-4.5" />
+            </span>
+            Invite Staff
+          </DialogTitle>
           <DialogDescription className="text-sm text-muted-foreground">
             Send an invitation email to a new team member.
           </DialogDescription>
@@ -133,6 +146,7 @@ const InviteStaffModal = ({ open, onClose, onInvite, isSubmitting }: Props) => {
                 <FieldLabel>First Name *</FieldLabel>
                 <Input
                   placeholder="James"
+                  className="h-11 rounded-xl"
                   aria-invalid={!!errors.firstName}
                   {...register("firstName")}
                 />
@@ -142,6 +156,7 @@ const InviteStaffModal = ({ open, onClose, onInvite, isSubmitting }: Props) => {
                 <FieldLabel>Last Name *</FieldLabel>
                 <Input
                   placeholder="Wilson"
+                  className="h-11 rounded-xl"
                   aria-invalid={!!errors.lastName}
                   {...register("lastName")}
                 />
@@ -152,12 +167,12 @@ const InviteStaffModal = ({ open, onClose, onInvite, isSubmitting }: Props) => {
             {/* Email */}
             <Field>
               <FieldLabel>Email Address *</FieldLabel>
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+              <div className="group relative">
+                <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground transition-colors group-focus-within:text-brand-500" />
                 <Input
                   type="email"
                   placeholder="team@example.com"
-                  className="pl-9"
+                  className="h-11 rounded-xl pl-9"
                   aria-invalid={!!errors.email}
                   {...register("email")}
                 />
@@ -174,7 +189,10 @@ const InviteStaffModal = ({ open, onClose, onInvite, isSubmitting }: Props) => {
                   setValue("role", val, { shouldValidate: true })
                 }
               >
-                <SelectTrigger aria-invalid={!!errors.role}>
+                <SelectTrigger
+                  aria-invalid={!!errors.role}
+                  className="h-11 rounded-xl"
+                >
                   <span className="text-sm">
                     {selectedRole ? selectedRole.label : "Select a role"}
                   </span>
@@ -186,7 +204,7 @@ const InviteStaffModal = ({ open, onClose, onInvite, isSubmitting }: Props) => {
                       <SelectItem key={option.value} value={option.value}>
                         <div className="flex items-start gap-2">
                           <Icon
-                            className={`h-4 w-4 mt-0.5 ${option.iconClassName}`}
+                            className={`mt-0.5 h-4 w-4 ${option.iconClassName}`}
                           />
                           <div className="flex flex-col">
                             <p className="text-sm font-medium">
@@ -205,9 +223,9 @@ const InviteStaffModal = ({ open, onClose, onInvite, isSubmitting }: Props) => {
               <FieldError errors={[errors.role]} />
             </Field>
 
-            <Alert className="bg-blue-500/5 border-blue-500/20 py-3">
+            <Alert className="border-blue-500/20 bg-blue-500/5 py-3">
               <Info className="h-4 w-4 text-blue-500" />
-              <AlertDescription className="text-xs text-muted-foreground leading-relaxed">
+              <AlertDescription className="text-xs leading-relaxed text-muted-foreground">
                 The invitee will receive an email with a link to join your
                 workspace. The invitation expires in{" "}
                 <span className="font-medium text-foreground">48 hours</span>.
@@ -216,11 +234,11 @@ const InviteStaffModal = ({ open, onClose, onInvite, isSubmitting }: Props) => {
           </form>
         </div>
 
-        <div className="px-6 py-4 border-t border-border flex gap-3">
+        <div className="flex gap-3 border-t border-border px-6 py-4">
           <Button
             type="button"
             variant="outline"
-            className="flex-1 rounded-xl"
+            className="h-11 flex-1 rounded-xl"
             onClick={handleClose}
             disabled={isSubmitting}
           >
@@ -230,7 +248,7 @@ const InviteStaffModal = ({ open, onClose, onInvite, isSubmitting }: Props) => {
             type="submit"
             form="invite-form"
             disabled={isSubmitting}
-            className="flex-1 bg-brand-500 hover:bg-brand-600 text-white rounded-xl shadow-md shadow-brand-500/20 disabled:opacity-70"
+            className="h-11 flex-1 rounded-xl bg-primary font-semibold text-primary-foreground shadow-lg shadow-brand-500/25 transition-all duration-200 hover:bg-brand-600 disabled:opacity-70"
           >
             {isSubmitting ? (
               <>

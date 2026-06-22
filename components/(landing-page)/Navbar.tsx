@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { SignInButton, SignUpButton, UserButton, useAuth } from "@clerk/nextjs";
+import { SignInButton, SignUpButton, useAuth } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
 import { Menu, X, Moon, Sun } from "lucide-react";
 import Logo from "@/components/shared/Logo";
@@ -16,6 +16,9 @@ const navLinks = [
   { label: "Pricing", href: "#pricing" },
   { label: "FAQ", href: "#faq" },
 ];
+
+const getStartedCta =
+  "bg-primary text-primary-foreground hover:bg-brand-600 font-semibold shadow-md shadow-brand-500/30 hover:shadow-lg hover:shadow-brand-500/40 hover:-translate-y-px transition-all duration-150";
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -32,12 +35,14 @@ const Navbar = () => {
   }, []);
 
   const isDark = mounted && theme === "dark";
+
   return (
     <header
-      className={`
-        fixed top-0 left-0 right-0 z-50 transition-all duration-300
-        ${"bg-background/50 backdrop-blur-2xl shadow-sm border-b border-border"}
-      `}
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+        isScrolled
+          ? "bg-background/80 backdrop-blur-xl border-b border-border shadow-sm"
+          : "bg-transparent border-b border-transparent"
+      }`}
     >
       <Container>
         <div className="flex items-center justify-between h-16 md:h-18">
@@ -50,7 +55,7 @@ const Navbar = () => {
               <Link
                 key={link.href}
                 href={link.href}
-                className="text-sm font-medium px-4 py-2 rounded-lg text-foreground/70 hover:text-brand-600 dark:hover:text-brand-400 hover:bg-brand-500/8 transition-all duration-150"
+                className="text-sm font-medium px-4 py-2 rounded-lg text-foreground/70 hover:text-brand-600 dark:hover:text-brand-300 hover:bg-brand-500/8 transition-all duration-150"
               >
                 {link.label}
               </Link>
@@ -64,7 +69,7 @@ const Navbar = () => {
               <button
                 onClick={() => setTheme(isDark ? "light" : "dark")}
                 aria-label="Toggle theme"
-                className="h-9 w-9 flex items-center justify-center rounded-lg text-slate-500 dark:text-slate-400 hover:text-brand-600 dark:hover:text-brand-400 hover:bg-brand-500/10 transition-all duration-150"
+                className="h-9 w-9 flex items-center justify-center rounded-lg border border-border text-muted-foreground hover:text-brand-600 dark:hover:text-brand-300 hover:bg-brand-500/10 transition-all duration-150"
               >
                 {isDark ? (
                   <Sun className="h-4 w-4" />
@@ -76,28 +81,24 @@ const Navbar = () => {
 
             {/* Auth buttons */}
             {!isLoaded ? (
-              /* Skeleton while Clerk loads */
               <div className="flex items-center gap-2">
-                <div className="h-8 w-16 rounded-lg bg-slate-200 dark:bg-slate-700 animate-pulse" />
-                <div className="h-8 w-32 rounded-lg bg-brand-200 dark:bg-brand-900 animate-pulse" />
+                <div className="h-9 w-16 rounded-lg bg-muted animate-pulse" />
+                <div className="h-9 w-32 rounded-lg bg-brand-500/15 animate-pulse" />
               </div>
             ) : !isSignedIn ? (
               <>
-                <SignInButton mode="modal" forceRedirectUrl="/dashboard">
+                <SignInButton mode="modal" fallbackRedirectUrl="/dashboard">
                   <Button
                     variant="ghost"
                     size="lg"
-                    className="text-slate-600 dark:text-slate-300 hover:text-brand-600 dark:hover:text-brand-400 hover:bg-brand-500/10 font-medium"
+                    className="text-foreground/80 hover:text-brand-600 dark:hover:text-brand-300 hover:bg-brand-500/10 font-medium"
                   >
                     Sign In
                   </Button>
                 </SignInButton>
 
-                <SignUpButton mode="modal" forceRedirectUrl="/onboarding">
-                  <Button
-                    size="lg"
-                    className="bg-brand-500 hover:bg-brand-600 text-white font-semibold shadow-md shadow-brand-500/30 hover:shadow-lg hover:shadow-brand-500/40 hover:-translate-y-px transition-all duration-150"
-                  >
+                <SignUpButton mode="modal" fallbackRedirectUrl="/onboarding">
+                  <Button size="lg" className={getStartedCta}>
                     Get Started Free
                   </Button>
                 </SignUpButton>
@@ -113,7 +114,7 @@ const Navbar = () => {
               <button
                 onClick={() => setTheme(isDark ? "light" : "dark")}
                 aria-label="Toggle theme"
-                className="h-9 w-9 flex items-center justify-center rounded-lg text-slate-500 dark:text-slate-400 hover:bg-brand-500/10 transition-all"
+                className="h-9 w-9 flex items-center justify-center rounded-lg text-muted-foreground hover:bg-brand-500/10 transition-all"
               >
                 {isDark ? (
                   <Sun className="h-4 w-4" />
@@ -124,7 +125,7 @@ const Navbar = () => {
             )}
             <button
               onClick={() => setIsMobileOpen(!isMobileOpen)}
-              className="p-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-brand-500/10 transition-all"
+              className="p-2 rounded-lg text-foreground/80 hover:bg-brand-500/10 transition-all"
             >
               {isMobileOpen ? <X size={22} /> : <Menu size={22} />}
             </button>
@@ -142,7 +143,7 @@ const Navbar = () => {
                   key={link.href}
                   href={link.href}
                   onClick={() => setIsMobileOpen(false)}
-                  className="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-brand-600 dark:hover:text-brand-400 hover:bg-brand-500/8 px-3 py-2.5 rounded-lg transition-colors"
+                  className="text-sm font-medium text-foreground/80 hover:text-brand-600 dark:hover:text-brand-300 hover:bg-brand-500/8 px-3 py-2.5 rounded-lg transition-colors"
                 >
                   {link.label}
                 </Link>
@@ -151,21 +152,24 @@ const Navbar = () => {
               <div className="pt-3 mt-2 border-t border-border flex flex-col gap-2">
                 {!isLoaded ? (
                   <div className="flex flex-col gap-2">
-                    <div className="h-10 w-full rounded-lg bg-slate-200 dark:bg-slate-700 animate-pulse" />
-                    <div className="h-10 w-full rounded-lg bg-brand-200 dark:bg-brand-900 animate-pulse" />
+                    <div className="h-10 w-full rounded-lg bg-muted animate-pulse" />
+                    <div className="h-10 w-full rounded-lg bg-brand-500/15 animate-pulse" />
                   </div>
                 ) : !isSignedIn ? (
                   <>
-                    <SignInButton mode="modal" forceRedirectUrl="/dashboard">
+                    <SignInButton mode="modal" fallbackRedirectUrl="/dashboard">
                       <Button
                         variant="ghost"
-                        className="w-full justify-start text-slate-600 dark:text-slate-300"
+                        className="w-full justify-start text-foreground/80"
                       >
                         Sign In
                       </Button>
                     </SignInButton>
-                    <SignUpButton mode="modal" forceRedirectUrl="/onboarding">
-                      <Button className="w-full bg-brand-500 hover:bg-brand-600 text-white shadow-md shadow-brand-500/30">
+                    <SignUpButton
+                      mode="modal"
+                      fallbackRedirectUrl="/onboarding"
+                    >
+                      <Button className={`w-full ${getStartedCta}`}>
                         Get Started Free
                       </Button>
                     </SignUpButton>

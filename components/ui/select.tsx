@@ -40,7 +40,7 @@ function SelectTrigger({
     <SelectPrimitive.Trigger
       data-slot="select-trigger"
       className={cn(
-        "flex w-full h-11 items-center justify-between gap-2 rounded-md border px-3 text-sm outline-none transition-all",
+        "flex w-full h-11 items-center justify-between gap-2 rounded-md border px-3 text-sm text-left outline-none transition-all",
 
         // 🌞 LIGHT MODE
         "border-gray-300 bg-transparent",

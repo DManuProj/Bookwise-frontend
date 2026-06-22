@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { format } from "date-fns";
 import { DateRange } from "react-day-picker";
-import { Loader2 } from "lucide-react";
+import { Loader2, CalendarDays } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -83,9 +83,14 @@ const RequestLeaveModal = ({ open, onClose, isOwner }: Props) => {
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-[480px]">
+      <DialogContent className="rounded-2xl sm:max-w-[480px]">
         <DialogHeader>
-          <DialogTitle>{isOwner ? "Add Leave" : "Request Leave"}</DialogTitle>
+          <DialogTitle className="flex items-center gap-2.5 text-xl font-bold tracking-tight">
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-brand-400 to-brand-600 text-white shadow-md shadow-brand-500/30">
+              <CalendarDays className="h-4.5 w-4.5" />
+            </span>
+            {isOwner ? "Add Leave" : "Request Leaves"}
+          </DialogTitle>
           <DialogDescription>
             {isOwner
               ? "Block off dates from your calendar. This will be auto-approved."
@@ -99,7 +104,7 @@ const RequestLeaveModal = ({ open, onClose, isOwner }: Props) => {
             <Label className="text-sm font-medium">
               Leave dates <span className="text-destructive">*</span>
             </Label>
-            <div className="flex justify-center rounded-xl border border-border p-2">
+            <div className="flex justify-center rounded-2xl border border-border bg-card p-2 shadow-sm">
               <Calendar
                 mode="range"
                 selected={range}
@@ -123,7 +128,7 @@ const RequestLeaveModal = ({ open, onClose, isOwner }: Props) => {
 
             {/* Inline preview */}
             {range?.from && range?.to && (
-              <p className="text-xs text-muted-foreground text-center">
+              <p className="rounded-lg bg-brand-500/[0.06] px-3 py-2 text-center text-xs font-medium text-brand-700 dark:bg-brand-500/10 dark:text-brand-300">
                 {format(range.from, "EEE, MMM d")} →{" "}
                 {format(range.to, "EEE, MMM d, yyyy")}
               </p>
@@ -134,7 +139,7 @@ const RequestLeaveModal = ({ open, onClose, isOwner }: Props) => {
           <div className="space-y-2">
             <Label className="text-sm font-medium">
               Reason{" "}
-              <span className="text-xs text-muted-foreground font-normal">
+              <span className="text-xs font-normal text-muted-foreground">
                 (optional)
               </span>
             </Label>
@@ -142,13 +147,17 @@ const RequestLeaveModal = ({ open, onClose, isOwner }: Props) => {
               value={reason}
               onChange={(e) => setReason(e.target.value)}
               placeholder="Optional — e.g. family event, vacation"
-              className="resize-none h-20"
+              className="h-20 resize-none rounded-xl"
               disabled={isPending}
             />
           </div>
 
           {/* Error */}
-          {error && <p className="text-xs text-destructive">{error}</p>}
+          {error && (
+            <p className="rounded-lg bg-destructive/10 px-3 py-2 text-xs font-medium text-destructive">
+              {error}
+            </p>
+          )}
         </div>
 
         <DialogFooter className="gap-2 sm:gap-2">
@@ -156,14 +165,14 @@ const RequestLeaveModal = ({ open, onClose, isOwner }: Props) => {
             variant="outline"
             onClick={() => handleOpenChange(false)}
             disabled={isPending}
-            className="rounded-xl"
+            className="h-11 rounded-xl"
           >
             Cancel
           </Button>
           <Button
             onClick={handleSubmit}
             disabled={isPending}
-            className="rounded-xl bg-brand-500 text-white hover:bg-brand-600 border-0 shadow-sm shadow-brand-500/20 disabled:opacity-70"
+            className="h-11 rounded-xl bg-primary font-semibold text-primary-foreground shadow-lg shadow-brand-500/25 transition-all duration-200 hover:bg-brand-600 disabled:opacity-70"
           >
             {isPending ? (
               <>

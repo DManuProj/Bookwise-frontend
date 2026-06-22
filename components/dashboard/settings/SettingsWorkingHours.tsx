@@ -51,7 +51,7 @@ const TimeSelect = ({
   onChange: (v: string) => void;
 }) => (
   <Select value={value} onValueChange={onChange}>
-    <SelectTrigger className="flex-1 h-9 text-sm">
+    <SelectTrigger className="h-9 flex-1 rounded-lg text-sm">
       <SelectValue />
     </SelectTrigger>
     <SelectContent>
@@ -87,13 +87,13 @@ const SettingsWorkingHours = () => {
       >
         <div className="space-y-4">
           <div className="flex items-center gap-4">
-            <Skeleton className="w-14 h-14 rounded-2xl shrink-0" />
+            <Skeleton className="h-14 w-14 shrink-0 rounded-2xl" />
             <div className="space-y-2">
               <Skeleton className="h-4 w-40" />
               <Skeleton className="h-3 w-24" />
             </div>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+          <div className="grid grid-cols-1 gap-3 pt-1 sm:grid-cols-2">
             <div className="space-y-1">
               <Skeleton className="h-3 w-10" />
               <Skeleton className="h-4 w-32" />
@@ -147,9 +147,12 @@ const SettingsWorkingHours = () => {
             return (
               <div
                 key={day}
-                className="flex items-center justify-between py-2.5 border-b border-border last:border-0"
+                className="flex items-center justify-between border-b border-border py-2.5 last:border-0"
               >
-                <span className="text-sm font-medium text-foreground w-28">
+                <span className="flex w-28 items-center gap-2 text-sm font-medium text-foreground">
+                  <span
+                    className={`h-1.5 w-1.5 rounded-full ${isOpen ? "bg-brand-500" : "bg-muted-foreground/40"}`}
+                  />
                   {label}
                 </span>
                 {isOpen ? (
@@ -173,24 +176,24 @@ const SettingsWorkingHours = () => {
             return (
               <div
                 key={key}
-                className={`flex items-center gap-4 px-4 py-3 rounded-xl border border-brand-500/15 dark:border-brand-500/10 bg-muted/20 transition-opacity ${
-                  !row.isOpen ? "opacity-50" : ""
+                className={`flex items-center gap-4 rounded-xl border border-border bg-muted/30 px-4 py-3 transition-opacity ${
+                  !row.isOpen ? "opacity-60" : ""
                 }`}
               >
                 <Switch
                   checked={row.isOpen}
                   onCheckedChange={(v) => updateRow(key, "isOpen", v)}
                 />
-                <Label className="text-sm font-medium text-foreground w-28 shrink-0">
+                <Label className="w-28 shrink-0 text-sm font-medium text-foreground">
                   {label}
                 </Label>
                 {row.isOpen ? (
-                  <div className="flex items-center gap-2 flex-1">
+                  <div className="flex flex-1 items-center gap-2">
                     <TimeSelect
                       value={row.openTime}
                       onChange={(v) => updateRow(key, "openTime", v)}
                     />
-                    <span className="text-sm text-muted-foreground shrink-0">
+                    <span className="shrink-0 text-sm text-muted-foreground">
                       to
                     </span>
                     <TimeSelect

@@ -125,7 +125,7 @@ const RecentActivity = ({ items }: { items: OverviewActivityItem[] }) => (
         </div>
       ) : (
         <ul className="divide-y divide-border">
-          {items.map((item) => {
+          {items.slice(0, 4).map((item) => {
             const config = ACTION_CONFIG[item.action] ?? DEFAULT_CONFIG;
             const Icon = config.icon;
             const metadata = (item.metadata ?? {}) as Record<string, unknown>;

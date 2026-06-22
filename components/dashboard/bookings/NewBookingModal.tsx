@@ -85,6 +85,10 @@ const combineDateTime = (date: Date, timeSlot: string): string => {
   return result.toISOString();
 };
 
+// Shared trigger styling for the popover/combobox buttons (tokens, not raw gray/teal)
+const triggerClass =
+  "flex h-11 w-full items-center gap-2 rounded-xl border border-input bg-transparent px-3 text-left text-sm transition-colors hover:border-brand-500/40 hover:bg-brand-500/[0.04]";
+
 const NewBookingModal = ({
   open,
   onClose,
@@ -128,7 +132,9 @@ const NewBookingModal = ({
   } = useForm<DashboardBookingInputs>({
     resolver: (isEdit
       ? zodResolver(dashboardEditBookingSchema)
-      : zodResolver(dashboardBookingSchema)) as Resolver<DashboardBookingInputs>,
+      : zodResolver(
+          dashboardBookingSchema,
+        )) as Resolver<DashboardBookingInputs>,
     mode: "onSubmit",
     reValidateMode: "onChange",
     defaultValues: {
@@ -268,17 +274,24 @@ const NewBookingModal = ({
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && handleClose()}>
-      <DialogContent className="max-w-xl! w-full p-0 gap-0 overflow-hidden">
+      <DialogContent className="w-full max-w-xl! gap-0 overflow-hidden rounded-2xl p-0">
         {/* Fixed header */}
-        <DialogHeader className="px-6 pt-6 pb-4 border-b border-border shrink-0">
-          <DialogTitle className="text-xl font-bold">
+        <DialogHeader className="shrink-0 border-b border-border px-6 pb-4 pt-6">
+          <DialogTitle className="text-xl font-bold tracking-tight">
             {isEdit ? (
-              <span className="flex items-center gap-2">
-                <Pencil className="h-5 w-5" />
+              <span className="flex items-center gap-2.5">
+                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-500/10 text-brand-600 dark:text-brand-400">
+                  <Pencil className="h-4.5 w-4.5" />
+                </span>
                 Edit Booking
               </span>
             ) : (
-              "New Booking"
+              <span className="flex items-center gap-2.5">
+                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-brand-400 to-brand-600 text-white shadow-md shadow-brand-500/30">
+                  <CalendarIcon className="h-4.5 w-4.5" />
+                </span>
+                New Booking
+              </span>
             )}
           </DialogTitle>
           <DialogDescription className="text-sm text-muted-foreground">
@@ -289,7 +302,7 @@ const NewBookingModal = ({
         </DialogHeader>
 
         {/* Scrollable content */}
-        <div className="-mx-3 overflow-y-auto no-scrollbar! max-h-[70vh] flex-1 px-10! py-5 space-y-5">
+        <div className="no-scrollbar! -mx-3 max-h-[70vh] flex-1 space-y-5 overflow-y-auto px-10! py-5">
           <form
             id="new-booking-form"
             onSubmit={handleFormSubmit}
@@ -299,7 +312,8 @@ const NewBookingModal = ({
             {!isEdit && (
               <>
                 <div>
-                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
+                  <p className="mb-3 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    <User className="h-3.5 w-3.5 text-brand-500" />
                     Customer Details
                   </p>
                   <div className="space-y-3">
@@ -318,14 +332,13 @@ const NewBookingModal = ({
                                 role="combobox"
                                 aria-expanded={comboboxOpen}
                                 className={cn(
-                                  "flex h-11 w-full items-center justify-between gap-2 rounded-md border px-3 text-sm text-left transition-colors",
-                                  "border-gray-300 dark:border-teal-500/30 bg-transparent",
-                                  "hover:border-gray-400 dark:hover:border-teal-400",
-                                  pickerError ? "border-destructive" : "",
+                                  triggerClass,
+                                  "justify-between",
+                                  pickerError && "border-destructive",
                                 )}
                               >
                                 {selectedCustomer ? (
-                                  <span className="text-foreground truncate">
+                                  <span className="truncate text-foreground">
                                     {selectedCustomer.name}
                                   </span>
                                 ) : (
@@ -333,7 +346,7 @@ const NewBookingModal = ({
                                     Search by name, email, or phone...
                                   </span>
                                 )}
-                                <ChevronsUpDown className="h-4 w-4 text-muted-foreground shrink-0" />
+                                <ChevronsUpDown className="h-4 w-4 shrink-0 text-muted-foreground" />
                               </button>
                             </PopoverTrigger>
                             <PopoverContent
@@ -349,7 +362,7 @@ const NewBookingModal = ({
                                 <CommandList>
                                   {customersLoading && (
                                     <div className="flex items-center justify-center gap-2 py-4 text-sm text-muted-foreground">
-                                      <Loader2 className="h-4 w-4 animate-spin" />
+                                      <Loader2 className="h-4 w-4 animate-spin text-brand-500" />
                                       Searching...
                                     </div>
                                   )}
@@ -384,7 +397,7 @@ const NewBookingModal = ({
                             </PopoverContent>
                           </Popover>
                           {pickerError && (
-                            <p className="text-xs text-destructive mt-1">
+                            <p className="mt-1 text-xs text-destructive">
                               {pickerError}
                             </p>
                           )}
@@ -392,26 +405,26 @@ const NewBookingModal = ({
 
                         {/* Read-only email/phone after selection */}
                         {selectedCustomer && (
-                          <div className="grid grid-cols-2 gap-3">
+                          <div className="grid grid-cols-2 gap-3 rounded-xl border border-brand-500/20 bg-brand-500/[0.05] p-3 dark:bg-brand-500/10">
                             <Field>
                               <FieldLabel>Email</FieldLabel>
                               <div className="relative">
-                                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                                <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                                 <Input
                                   readOnly
                                   value={selectedCustomer.email}
-                                  className="pl-9 bg-muted/40 cursor-default"
+                                  className="cursor-default rounded-lg bg-card/60 pl-9"
                                 />
                               </div>
                             </Field>
                             <Field>
                               <FieldLabel>Phone</FieldLabel>
                               <div className="relative">
-                                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                                <Phone className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                                 <Input
                                   readOnly
                                   value={selectedCustomer.phone}
-                                  className="pl-9 bg-muted/40 cursor-default"
+                                  className="cursor-default rounded-lg bg-card/60 pl-9"
                                 />
                               </div>
                             </Field>
@@ -421,7 +434,7 @@ const NewBookingModal = ({
                         <button
                           type="button"
                           onClick={handleSwitchToNew}
-                          className="flex items-center gap-1.5 text-xs text-brand-600 dark:text-brand-400 hover:underline"
+                          className="flex items-center gap-1.5 text-xs font-medium text-brand-600 hover:underline dark:text-brand-400"
                         >
                           <UserPlus className="h-3.5 w-3.5" />
                           Add as new customer
@@ -431,11 +444,11 @@ const NewBookingModal = ({
                       <>
                         <Field>
                           <FieldLabel>Full Name *</FieldLabel>
-                          <div className="relative">
-                            <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                          <div className="group relative">
+                            <User className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground transition-colors group-focus-within:text-brand-500" />
                             <Input
                               placeholder="e.g. Sarah Johnson"
-                              className="pl-9"
+                              className="h-11 rounded-xl pl-9"
                               aria-invalid={!!errors.customerName}
                               {...register("customerName")}
                             />
@@ -446,12 +459,12 @@ const NewBookingModal = ({
                         <div className="grid grid-cols-2 gap-3">
                           <Field>
                             <FieldLabel>Email *</FieldLabel>
-                            <div className="relative">
-                              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                            <div className="group relative">
+                              <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground transition-colors group-focus-within:text-brand-500" />
                               <Input
                                 type="email"
                                 placeholder="sarah@email.com"
-                                className="pl-9"
+                                className="h-11 rounded-xl pl-9"
                                 aria-invalid={!!errors.customerEmail}
                                 {...register("customerEmail")}
                               />
@@ -461,12 +474,12 @@ const NewBookingModal = ({
 
                           <Field>
                             <FieldLabel>Phone *</FieldLabel>
-                            <div className="relative">
-                              <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                            <div className="group relative">
+                              <Phone className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground transition-colors group-focus-within:text-brand-500" />
                               <Input
                                 type="tel"
                                 placeholder="+1 555 0101"
-                                className="pl-9"
+                                className="h-11 rounded-xl pl-9"
                                 aria-invalid={!!errors.customerPhone}
                                 {...register("customerPhone")}
                               />
@@ -478,7 +491,7 @@ const NewBookingModal = ({
                         <button
                           type="button"
                           onClick={handleSwitchToPick}
-                          className="flex items-center gap-1.5 text-xs text-brand-600 dark:text-brand-400 hover:underline"
+                          className="flex items-center gap-1.5 text-xs font-medium text-brand-600 hover:underline dark:text-brand-400"
                         >
                           <ArrowLeft className="h-3.5 w-3.5" />
                           Pick existing customer
@@ -494,7 +507,8 @@ const NewBookingModal = ({
 
             {/* Appointment details */}
             <div>
-              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
+              <p className="mb-3 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                <CalendarIcon className="h-3.5 w-3.5 text-brand-500" />
                 Appointment Details
               </p>
               <div className="space-y-3">
@@ -508,16 +522,19 @@ const NewBookingModal = ({
                       setValue("serviceId", val, { shouldValidate: true })
                     }
                   >
-                    <SelectTrigger aria-invalid={!!errors.serviceId}>
+                    <SelectTrigger
+                      aria-invalid={!!errors.serviceId}
+                      className="h-11 rounded-xl"
+                    >
                       <div className="flex items-center gap-2">
-                        <Scissors className="h-4 w-4 text-muted-foreground shrink-0" />
+                        <Scissors className="h-4 w-4 shrink-0 text-muted-foreground" />
                         <SelectValue placeholder="Select a service" />
                       </div>
                     </SelectTrigger>
                     <SelectContent>
                       {services?.map((s) => (
                         <SelectItem key={s.id} value={s.id}>
-                          <div className="flex items-center justify-between w-full gap-4">
+                          <div className="flex w-full items-center justify-between gap-4">
                             <span>{s.name}</span>
                             <span className="text-xs text-muted-foreground">
                               {s.durationMins}min
@@ -528,7 +545,7 @@ const NewBookingModal = ({
                     </SelectContent>
                   </Select>
                   {selectedService && (
-                    <p className="text-xs text-brand-600 dark:text-brand-400 flex items-center gap-1 mt-1">
+                    <p className="mt-1 flex items-center gap-1 text-xs text-brand-600 dark:text-brand-400">
                       <Clock className="h-3 w-3" />
                       Duration: {selectedService.durationMins} minutes
                     </p>
@@ -546,9 +563,12 @@ const NewBookingModal = ({
                       setValue("staffId", val, { shouldValidate: true })
                     }
                   >
-                    <SelectTrigger aria-invalid={!!errors.staffId}>
+                    <SelectTrigger
+                      aria-invalid={!!errors.staffId}
+                      className="h-11 rounded-xl"
+                    >
                       <div className="flex items-center gap-2">
-                        <Users className="h-4 w-4 text-muted-foreground shrink-0" />
+                        <Users className="h-4 w-4 shrink-0 text-muted-foreground" />
                         <SelectValue placeholder="Select a staff member" />
                       </div>
                     </SelectTrigger>
@@ -571,13 +591,11 @@ const NewBookingModal = ({
                       <button
                         type="button"
                         className={cn(
-                          "flex h-11 w-full items-center gap-2 rounded-md border px-3 text-sm text-left transition-colors",
-                          "border-gray-300 dark:border-teal-500/30 bg-transparent",
-                          "hover:border-gray-400 dark:hover:border-teal-400",
-                          errors.date ? "border-destructive" : "",
+                          triggerClass,
+                          errors.date && "border-destructive",
                         )}
                       >
-                        <CalendarIcon className="h-4 w-4 text-muted-foreground shrink-0" />
+                        <CalendarIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
                         {selectedDate ? (
                           <span className="text-foreground">
                             {format(selectedDate, "EEEE, MMMM d, yyyy")}
@@ -619,19 +637,19 @@ const NewBookingModal = ({
                         ? `Available slots for ${format(selectedDate, "MMM d")}`
                         : "Assign a staff member to see available slots"}
                     </FieldDescription>
-                    <div className="grid grid-cols-4 gap-2 mt-1">
+                    <div className="mt-1 grid grid-cols-4 gap-2">
                       {!watchedStaffId ? (
-                        <div className="col-span-4 text-sm text-muted-foreground text-center py-4">
+                        <div className="col-span-4 py-4 text-center text-sm text-muted-foreground">
                           {isEdit
                             ? "This booking has no staff assigned. Please select a staff member above."
                             : "Select a staff member to see available slots."}
                         </div>
                       ) : slotsLoading ? (
                         Array.from({ length: 8 }).map((_, i) => (
-                          <Skeleton key={i} className="h-9 rounded-lg" />
+                          <Skeleton key={i} className="h-10 rounded-xl" />
                         ))
                       ) : !slots || slots.length === 0 ? (
-                        <div className="col-span-4 text-sm text-muted-foreground text-center py-4">
+                        <div className="col-span-4 py-4 text-center text-sm text-muted-foreground">
                           No slots available. Try a different date or staff
                           member.
                         </div>
@@ -652,10 +670,10 @@ const NewBookingModal = ({
                                 })
                               }
                               className={cn(
-                                "h-9 rounded-lg text-xs font-medium border transition-all duration-150",
+                                "h-10 rounded-xl border text-xs font-semibold transition-all duration-150",
                                 watchedTime === display
-                                  ? "bg-brand-500 border-brand-500 text-white shadow-sm shadow-brand-500/20"
-                                  : "border-border text-muted-foreground hover:border-brand-400 hover:text-brand-600 dark:hover:text-brand-400",
+                                  ? "border-brand-500 bg-primary text-primary-foreground shadow-md shadow-brand-500/25"
+                                  : "border-border bg-card text-foreground hover:-translate-y-0.5 hover:border-brand-500/40 hover:bg-brand-500/[0.06] hover:text-brand-600 dark:hover:text-brand-400",
                               )}
                             >
                               {display}
@@ -665,7 +683,7 @@ const NewBookingModal = ({
                       )}
                     </div>
                     {errors.time && (
-                      <p className="text-xs text-destructive mt-1">
+                      <p className="mt-1 text-xs text-destructive">
                         {errors.time.message}
                       </p>
                     )}
@@ -676,11 +694,11 @@ const NewBookingModal = ({
                 <Field>
                   <FieldLabel>Note</FieldLabel>
                   <FieldDescription>Optional internal note</FieldDescription>
-                  <div className="relative">
-                    <FileText className="absolute left-3 top-3 h-4 w-4 text-muted-foreground pointer-events-none" />
+                  <div className="group relative">
+                    <FileText className="pointer-events-none absolute left-3 top-3 h-4 w-4 text-muted-foreground transition-colors group-focus-within:text-brand-500" />
                     <Textarea
                       placeholder="Any special requests or notes..."
-                      className="resize-none h-20 text-sm pl-9"
+                      className="h-20 resize-none rounded-xl pl-9 text-sm"
                       {...register("note")}
                     />
                   </div>
@@ -691,11 +709,11 @@ const NewBookingModal = ({
         </div>
 
         {/* Fixed footer */}
-        <div className="px-6 py-4 border-t border-border shrink-0 flex gap-3">
+        <div className="flex shrink-0 gap-3 border-t border-border px-6 py-4">
           <Button
             type="button"
             variant="outline"
-            className="flex-1 rounded-xl"
+            className="h-11 flex-1 rounded-xl"
             onClick={handleClose}
             disabled={isSubmitting}
           >
@@ -705,7 +723,7 @@ const NewBookingModal = ({
             type="submit"
             form="new-booking-form"
             disabled={isSubmitting}
-            className="flex-1 bg-brand-500 hover:bg-brand-600 text-white rounded-xl shadow-md shadow-brand-500/20 disabled:opacity-70"
+            className="h-11 flex-1 rounded-xl bg-primary font-semibold text-primary-foreground shadow-lg shadow-brand-500/25 transition-all duration-200 hover:bg-brand-600 disabled:opacity-70"
           >
             {isSubmitting ? (
               <>

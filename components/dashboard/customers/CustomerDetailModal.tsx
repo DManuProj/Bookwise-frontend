@@ -66,7 +66,6 @@ const STATUS_CONFIG: Record<
     icon: XCircle,
     className: "bg-rose-500/10 text-rose-600 dark:text-rose-400 border-0",
   },
-
 };
 
 const formatDate = (iso: string | null) => {
@@ -90,8 +89,6 @@ const CustomerDetailModal = ({ open, onClose, customerId }: Props) => {
   const { data: customer, isPending } = useCustomer(customerId);
   const { mutate: updateNotes, isPending: isSaving } = useUpdateCustomerNotes();
 
-  console.log("customer", customer);
-
   const [note, setNote] = useState("");
 
   // Sync note state when customer data arrives
@@ -104,21 +101,47 @@ const CustomerDetailModal = ({ open, onClose, customerId }: Props) => {
     updateNotes({ id: customer.id, notes: note });
   };
 
+  const stats = customer
+    ? [
+        {
+          label: "Total Bookings",
+          value: customer.totalBookings,
+          icon: CalendarDays,
+          color: "text-brand-600 dark:text-brand-400",
+          bg: "bg-brand-500/10",
+        },
+        {
+          label: "Last Visit",
+          value: formatDate(customer.lastVisit),
+          icon: Clock,
+          color: "text-blue-600 dark:text-blue-400",
+          bg: "bg-blue-500/10",
+        },
+        {
+          label: "First Seen",
+          value: formatDate(customer.firstSeen),
+          icon: TrendingUp,
+          color: "text-violet-600 dark:text-violet-400",
+          bg: "bg-violet-500/10",
+        },
+      ]
+    : [];
+
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="sm:max-w-xl w-full p-0 gap-0 overflow-hidden">
+      <DialogContent className="w-full gap-0 overflow-hidden rounded-2xl p-0 sm:max-w-xl">
         {isPending || !customer ? (
-          <div className="p-6 space-y-4">
+          <div className="space-y-4 p-6">
             <Skeleton className="h-12 w-full" />
             <Skeleton className="h-24 w-full" />
             <Skeleton className="h-32 w-full" />
           </div>
         ) : (
           <>
-            <DialogHeader className="px-6 pt-6 pb-4 border-b border-border">
+            <DialogHeader className="border-b border-border px-6 pb-4 pt-6">
               <div className="flex items-center gap-4">
                 <Avatar className="h-12 w-12 shrink-0 ring-2 ring-brand-500/15">
-                  <AvatarFallback className="bg-brand-500/10 text-brand-600 dark:text-brand-400 text-base font-bold">
+                  <AvatarFallback className="bg-gradient-to-br from-brand-400 to-brand-600 text-base font-bold text-white">
                     {customer.name
                       .split(" ")
                       .map((n) => n[0])
@@ -128,10 +151,10 @@ const CustomerDetailModal = ({ open, onClose, customerId }: Props) => {
                   </AvatarFallback>
                 </Avatar>
                 <div>
-                  <DialogTitle className="text-xl font-bold text-foreground">
+                  <DialogTitle className="text-xl font-bold tracking-tight text-foreground">
                     {customer.name}
                   </DialogTitle>
-                  <div className="flex items-center gap-4 mt-1">
+                  <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1">
                     <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
                       <Mail className="h-3.5 w-3.5" />
                       {customer.email}
@@ -146,46 +169,24 @@ const CustomerDetailModal = ({ open, onClose, customerId }: Props) => {
             </DialogHeader>
 
             <div
-              className="overflow-y-auto px-6 py-5 space-y-6"
+              className="space-y-6 overflow-y-auto px-6 py-5"
               style={{ maxHeight: "calc(90vh - 200px)" }}
             >
               {/* Stats row */}
               <div className="grid grid-cols-3 gap-3">
-                {[
-                  {
-                    label: "Total Bookings",
-                    value: customer.totalBookings,
-                    icon: CalendarDays,
-                    color: "text-brand-500",
-                    bg: "bg-brand-500/10",
-                  },
-                  {
-                    label: "Last Visit",
-                    value: formatDate(customer.lastVisit),
-                    icon: Clock,
-                    color: "text-blue-500",
-                    bg: "bg-blue-500/10",
-                  },
-                  {
-                    label: "First Seen",
-                    value: formatDate(customer.firstSeen),
-                    icon: TrendingUp,
-                    color: "text-violet-500",
-                    bg: "bg-violet-500/10",
-                  },
-                ].map((stat) => {
+                {stats.map((stat) => {
                   const Icon = stat.icon;
                   return (
                     <div
                       key={stat.label}
-                      className="flex flex-col gap-2 p-4 rounded-xl border border-border bg-muted/20"
+                      className="flex flex-col gap-2 rounded-xl border border-border bg-muted/30 p-4"
                     >
                       <div
-                        className={`w-8 h-8 rounded-lg ${stat.bg} flex items-center justify-center`}
+                        className={`flex h-8 w-8 items-center justify-center rounded-lg ${stat.bg}`}
                       >
                         <Icon className={`h-4 w-4 ${stat.color}`} />
                       </div>
-                      <p className="text-lg font-bold text-foreground">
+                      <p className="text-lg font-bold tracking-tight text-foreground">
                         {stat.value}
                       </p>
                       <p className="text-xs text-muted-foreground">
@@ -200,8 +201,10 @@ const CustomerDetailModal = ({ open, onClose, customerId }: Props) => {
 
               {/* Notes */}
               <div>
-                <div className="flex items-center gap-2 mb-3">
-                  <FileText className="h-4 w-4 text-brand-500" />
+                <div className="mb-3 flex items-center gap-2">
+                  <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-brand-500/10 text-brand-600 dark:text-brand-400">
+                    <FileText className="h-4 w-4" />
+                  </span>
                   <h3 className="text-sm font-semibold text-foreground">
                     Notes
                   </h3>
@@ -210,9 +213,9 @@ const CustomerDetailModal = ({ open, onClose, customerId }: Props) => {
                   value={note}
                   onChange={(e) => setNote(e.target.value)}
                   placeholder="Add private notes about this customer..."
-                  className="resize-none h-24 text-sm"
+                  className="h-24 resize-none rounded-xl text-sm"
                 />
-                <div className="flex items-center justify-between mt-2">
+                <div className="mt-2 flex items-center justify-between">
                   <p className="text-xs text-muted-foreground">
                     Notes are private — only visible to your team.
                   </p>
@@ -221,9 +224,9 @@ const CustomerDetailModal = ({ open, onClose, customerId }: Props) => {
                     size="sm"
                     onClick={handleSaveNote}
                     disabled={isSaving || note === (customer.notes ?? "")}
-                    className="h-8 text-xs rounded-lg bg-brand-500 hover:bg-brand-600 text-white"
+                    className="h-9 rounded-lg bg-primary text-xs font-semibold text-primary-foreground shadow-sm shadow-brand-500/20 transition-all duration-200 hover:bg-brand-600 disabled:opacity-50 disabled:shadow-none"
                   >
-                    <Save className="h-3.5 w-3.5 mr-1.5" />
+                    <Save className="mr-1.5 h-3.5 w-3.5" />
                     {isSaving ? "Saving..." : "Save Note"}
                   </Button>
                 </div>
@@ -233,31 +236,33 @@ const CustomerDetailModal = ({ open, onClose, customerId }: Props) => {
 
               {/* Booking history */}
               <div>
-                <div className="flex items-center gap-2 mb-3">
-                  <CalendarDays className="h-4 w-4 text-brand-500" />
+                <div className="mb-3 flex items-center gap-2">
+                  <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-brand-500/10 text-brand-600 dark:text-brand-400">
+                    <CalendarDays className="h-4 w-4" />
+                  </span>
                   <h3 className="text-sm font-semibold text-foreground">
                     Booking History
                   </h3>
-                  <Badge className="ml-auto bg-brand-500/10 text-brand-600 dark:text-brand-400 border-0 text-xs">
+                  <Badge className="ml-auto border-0 bg-brand-500/10 text-xs text-brand-600 dark:text-brand-400">
                     {customer.bookings.length} bookings
                   </Badge>
                 </div>
 
                 {customer.bookings.length > 0 ? (
-                  <div className="rounded-xl border border-border overflow-hidden">
+                  <div className="overflow-hidden rounded-xl border border-border">
                     <Table>
                       <TableHeader>
-                        <TableRow className="hover:bg-transparent border-b border-border bg-muted/30">
-                          <TableHead className="px-4 text-xs font-medium">
+                        <TableRow className="border-b border-border bg-muted/40 hover:bg-muted/40">
+                          <TableHead className="px-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                             Service
                           </TableHead>
-                          <TableHead className="text-xs font-medium">
-                            Date & Time
+                          <TableHead className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                            Date &amp; Time
                           </TableHead>
-                          <TableHead className="text-xs font-medium">
+                          <TableHead className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                             Staff
                           </TableHead>
-                          <TableHead className="text-xs font-medium">
+                          <TableHead className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                             Status
                           </TableHead>
                         </TableRow>
@@ -273,7 +278,7 @@ const CustomerDetailModal = ({ open, onClose, customerId }: Props) => {
                           return (
                             <TableRow
                               key={booking.id}
-                              className="hover:bg-muted/30 border-b border-border last:border-0"
+                              className="border-b border-border last:border-0 hover:bg-muted/30"
                             >
                               <TableCell className="px-4 py-3">
                                 <p className="text-sm font-medium text-foreground">
@@ -295,7 +300,7 @@ const CustomerDetailModal = ({ open, onClose, customerId }: Props) => {
                               </TableCell>
                               <TableCell className="py-3">
                                 <Badge
-                                  className={`text-xs flex items-center gap-1 w-fit ${status.className}`}
+                                  className={`flex w-fit items-center gap-1 text-xs ${status.className}`}
                                 >
                                   <StatusIcon className="h-3 w-3" />
                                   {status.label}
@@ -308,18 +313,18 @@ const CustomerDetailModal = ({ open, onClose, customerId }: Props) => {
                     </Table>
                   </div>
                 ) : (
-                  <p className="text-sm text-muted-foreground text-center py-6">
+                  <p className="py-6 text-center text-sm text-muted-foreground">
                     No bookings yet
                   </p>
                 )}
               </div>
             </div>
 
-            <div className="px-6 py-4 border-t border-border">
+            <div className="border-t border-border px-6 py-4">
               <Button
                 type="button"
                 variant="outline"
-                className="w-full rounded-xl"
+                className="h-11 w-full rounded-xl"
                 onClick={onClose}
               >
                 Close

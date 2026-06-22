@@ -1,7 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { MoreHorizontal, Pencil, Trash2, ToggleLeft, ToggleRight } from "lucide-react";
+import {
+  MoreHorizontal,
+  Pencil,
+  Trash2,
+  ToggleLeft,
+  ToggleRight,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -21,7 +27,13 @@ type Props = {
   isLoading?: boolean;
 };
 
-const ServiceCardActions = ({ service, onEdit, onToggle, onDelete, isLoading = false }: Props) => {
+const ServiceCardActions = ({
+  service,
+  onEdit,
+  onToggle,
+  onDelete,
+  isLoading = false,
+}: Props) => {
   const [deleteOpen, setDeleteOpen] = useState(false);
 
   return (
@@ -31,7 +43,7 @@ const ServiceCardActions = ({ service, onEdit, onToggle, onDelete, isLoading = f
           <Button
             variant="ghost"
             size="icon"
-            className="h-8 w-8 text-muted-foreground hover:text-foreground"
+            className="h-8 w-8 rounded-lg border border-transparent text-muted-foreground transition-colors hover:border-border hover:bg-muted hover:text-foreground data-[state=open]:border-brand-500/30 data-[state=open]:bg-brand-500/10 data-[state=open]:text-brand-600 dark:data-[state=open]:text-brand-400"
             disabled={isLoading}
           >
             <MoreHorizontal className="h-4 w-4" />
@@ -39,13 +51,19 @@ const ServiceCardActions = ({ service, onEdit, onToggle, onDelete, isLoading = f
           </Button>
         </DropdownMenuTrigger>
 
-        <DropdownMenuContent align="end" className="w-44">
-          <DropdownMenuItem onClick={() => onEdit(service)} className="gap-2">
+        <DropdownMenuContent align="end" className="w-48 rounded-xl p-1.5">
+          <DropdownMenuItem
+            onClick={() => onEdit(service)}
+            className="cursor-pointer gap-2.5 rounded-lg [&>svg]:text-muted-foreground focus:[&>svg]:text-foreground"
+          >
             <Pencil className="h-4 w-4" />
             Edit service
           </DropdownMenuItem>
 
-          <DropdownMenuItem onClick={() => onToggle(service.id)} className="gap-2">
+          <DropdownMenuItem
+            onClick={() => onToggle(service.id)}
+            className="cursor-pointer gap-2.5 rounded-lg [&>svg]:text-muted-foreground focus:[&>svg]:text-foreground"
+          >
             {service.isActive ? (
               <>
                 <ToggleLeft className="h-4 w-4" />
@@ -63,7 +81,7 @@ const ServiceCardActions = ({ service, onEdit, onToggle, onDelete, isLoading = f
 
           <DropdownMenuItem
             onClick={() => setDeleteOpen(true)}
-            className="gap-2 text-destructive focus:text-destructive focus:bg-destructive/8"
+            className="cursor-pointer gap-2.5 rounded-lg text-destructive focus:bg-destructive/10 focus:text-destructive [&>svg]:text-destructive"
           >
             <Trash2 className="h-4 w-4" />
             Delete service

@@ -9,7 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Field, FieldLabel, FieldDescription } from "@/components/ui/field";
+import { FieldLabel, FieldDescription } from "@/components/ui/field";
 import { Skeleton } from "@/components/ui/skeleton";
 import SettingsCard from "@/components/dashboard/settings/SettingsCard";
 import {
@@ -74,7 +74,7 @@ const SettingsBookingPrefs = () => {
         isLoading={isLoading}
       >
         <div className="space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             {[1, 2, 3].map((i) => (
               <div key={i} className="space-y-1">
                 <Skeleton className="h-3 w-24" />
@@ -132,7 +132,7 @@ const SettingsBookingPrefs = () => {
       {!isEditing ? (
         /* ── Read-only ── */
         <div className="space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
             {[
               {
                 label: "Minimum Notice",
@@ -144,18 +144,21 @@ const SettingsBookingPrefs = () => {
               },
               { label: "Max Per Slot", value: String(org.maxPerSlot) },
             ].map(({ label, value }) => (
-              <div key={label}>
-                <p className="text-xs text-muted-foreground mb-0.5">{label}</p>
-                <p className="text-sm font-medium text-foreground">{value}</p>
+              <div
+                key={label}
+                className="rounded-xl border border-border bg-muted/30 p-3.5"
+              >
+                <p className="mb-1 text-xs text-muted-foreground">{label}</p>
+                <p className="text-sm font-semibold text-foreground">{value}</p>
               </div>
             ))}
           </div>
           <div>
-            <p className="text-xs text-muted-foreground mb-0.5">
+            <p className="mb-0.5 text-xs text-muted-foreground">
               Cancellation Policy
             </p>
             <p
-              className={`text-sm ${org.cancelPolicy ? "text-foreground" : "text-muted-foreground italic"}`}
+              className={`text-sm ${org.cancelPolicy ? "text-foreground" : "italic text-muted-foreground"}`}
             >
               {org.cancelPolicy ?? "N/A"}
             </p>
@@ -164,7 +167,7 @@ const SettingsBookingPrefs = () => {
       ) : (
         /* ── Edit mode ── */
         <div className="space-y-4">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
             <div className="flex flex-col gap-2">
               <FieldLabel>Minimum Notice</FieldLabel>
               <FieldDescription>
@@ -177,7 +180,7 @@ const SettingsBookingPrefs = () => {
                   setDraft((p) => ({ ...p, minLeadTimeMins: Number(v) }))
                 }
               >
-                <SelectTrigger className="w-full">
+                <SelectTrigger className="h-11 w-full rounded-xl">
                   <SelectValue />
                 </SelectTrigger>
 
@@ -201,7 +204,7 @@ const SettingsBookingPrefs = () => {
                   setDraft((p) => ({ ...p, bufferMins: Number(v) }))
                 }
               >
-                <SelectTrigger className="w-full">
+                <SelectTrigger className="h-11 w-full rounded-xl">
                   <SelectValue />
                 </SelectTrigger>
 
@@ -225,7 +228,7 @@ const SettingsBookingPrefs = () => {
                   setDraft((p) => ({ ...p, maxPerSlot: Number(v) }))
                 }
               >
-                <SelectTrigger className="w-full">
+                <SelectTrigger className="h-11 w-full rounded-xl">
                   <SelectValue />
                 </SelectTrigger>
 
@@ -240,20 +243,20 @@ const SettingsBookingPrefs = () => {
             </div>
           </div>
 
-          <Field>
+          <div className="flex flex-col gap-1.5">
             <FieldLabel>Cancellation Policy</FieldLabel>
             <FieldDescription>
               Shown to customers on the booking page
             </FieldDescription>
             <Textarea
-              className="resize-none h-20 text-sm"
+              className="h-20 resize-none rounded-xl text-sm"
               value={draft.cancelPolicy}
               onChange={(e) =>
                 setDraft((p) => ({ ...p, cancelPolicy: e.target.value }))
               }
               placeholder="e.g. Cancellations must be made at least 24 hours in advance."
             />
-          </Field>
+          </div>
         </div>
       )}
     </SettingsCard>

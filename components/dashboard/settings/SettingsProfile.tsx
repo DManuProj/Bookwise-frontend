@@ -76,13 +76,13 @@ const SettingsProfile = () => {
       >
         <div className="space-y-4">
           <div className="flex items-center gap-4">
-            <Skeleton className="w-14 h-14 rounded-2xl shrink-0" />
+            <Skeleton className="h-14 w-14 shrink-0 rounded-2xl" />
             <div className="space-y-2">
               <Skeleton className="h-4 w-40" />
               <Skeleton className="h-3 w-24" />
             </div>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+          <div className="grid grid-cols-1 gap-3 pt-1 sm:grid-cols-2">
             <div className="space-y-1">
               <Skeleton className="h-3 w-10" />
               <Skeleton className="h-4 w-32" />
@@ -129,10 +129,10 @@ const SettingsProfile = () => {
       onSave={handleSubmit(onSubmit)}
     >
       {/* Avatar — always visible */}
-      <div className="flex items-center gap-4 mb-5 pb-5 border-b border-border">
+      <div className="mb-5 flex items-center gap-4 border-b border-border pb-5">
         <Avatar className="h-14 w-14 ring-2 ring-brand-500/15">
           <AvatarImage src={user?.imageUrl} alt={user?.fullName ?? ""} />
-          <AvatarFallback className="bg-brand-500/10 text-brand-600 dark:text-brand-400 text-lg font-bold">
+          <AvatarFallback className="bg-gradient-to-br from-brand-400 to-brand-600 text-lg font-bold text-white">
             {initials}
           </AvatarFallback>
         </Avatar>
@@ -140,10 +140,10 @@ const SettingsProfile = () => {
           <p className="text-sm font-semibold text-foreground">
             {`${me?.firstName ?? "—"} ${me?.lastName ?? "—"} `}
           </p>
-          <p className="text-xs text-muted-foreground mt-0.5">
+          <p className="mt-0.5 text-xs text-muted-foreground">
             {user?.primaryEmailAddress?.emailAddress}
           </p>
-          <p className="text-xs text-muted-foreground mt-0.5">
+          <p className="mt-0.5 text-xs text-muted-foreground">
             Photo managed via Clerk account
           </p>
         </div>
@@ -151,14 +151,14 @@ const SettingsProfile = () => {
 
       {!isEditing ? (
         /* ── Read-only ── */
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           {[
             { label: "First Name", value: me?.firstName ?? "—" },
             { label: "Last Name", value: me?.lastName ?? "—" },
             { label: "Phone", value: me.phone ?? "N/A" },
           ].map(({ label, value }) => (
             <div key={label}>
-              <p className="text-xs text-muted-foreground mb-0.5">{label}</p>
+              <p className="mb-0.5 text-xs text-muted-foreground">{label}</p>
               <p className="text-sm font-medium text-foreground">{value}</p>
             </div>
           ))}
@@ -169,10 +169,10 @@ const SettingsProfile = () => {
           <div className="grid grid-cols-2 gap-4">
             <Field>
               <FieldLabel>First Name *</FieldLabel>
-              <div className="relative">
-                <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+              <div className="group relative">
+                <User className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground transition-colors group-focus-within:text-brand-500" />
                 <Input
-                  className="pl-9"
+                  className="h-11 rounded-xl pl-9"
                   aria-invalid={!!errors.firstName}
                   {...register("firstName")}
                 />
@@ -182,6 +182,7 @@ const SettingsProfile = () => {
             <Field>
               <FieldLabel>Last Name *</FieldLabel>
               <Input
+                className="h-11 rounded-xl"
                 aria-invalid={!!errors.lastName}
                 {...register("lastName")}
               />
@@ -190,11 +191,11 @@ const SettingsProfile = () => {
           </div>
           <Field>
             <FieldLabel>Phone</FieldLabel>
-            <div className="relative">
-              <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+            <div className="group relative">
+              <Phone className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground transition-colors group-focus-within:text-brand-500" />
               <Input
                 type="tel"
-                className="pl-9"
+                className="h-11 rounded-xl pl-9"
                 aria-invalid={!!errors.phone}
                 {...register("phone")}
               />

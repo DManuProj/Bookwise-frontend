@@ -57,7 +57,7 @@ const PricingCards = ({ mode }: PricingCardsProps) => {
       </div>
 
       {/* Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
         {PLANS.map((plan) => {
           const isHighlight = plan.tier === "PRO";
           const isFree = plan.monthlyPrice === 0;
@@ -68,65 +68,80 @@ const PricingCards = ({ mode }: PricingCardsProps) => {
           return (
             <div
               key={plan.tier}
-              className={`relative rounded-2xl p-7 border transition-all duration-300 ${
+              className={`relative flex flex-col rounded-2xl p-7 transition-all duration-300 ${
                 isHighlight
-                  ? "bg-brand-500 border-brand-400 shadow-2xl shadow-brand-500/25 scale-[1.03]"
-                  : "card-surface card-hover"
+                  ? "bg-gradient-to-b from-brand-500 to-brand-600 border border-brand-400 shadow-2xl shadow-brand-500/30 md:-translate-y-3"
+                  : "card-surface card-hover hover:-translate-y-1"
               }`}
             >
+              {/* Soft glow on highlight */}
+              {isHighlight && (
+                <div className="absolute -top-20 left-1/2 -translate-x-1/2 w-48 h-48 rounded-full bg-brand-400/40 blur-3xl pointer-events-none" />
+              )}
+
               {/* Badge */}
               {plan.badge && (
-                <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
-                  <span className="inline-flex items-center gap-1 bg-white text-brand-600 text-xs font-bold px-3 py-1 rounded-full shadow-sm">
-                    <Zap className="h-3 w-3" />
+                <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 z-10">
+                  <span className="inline-flex items-center gap-1 bg-white text-brand-600 text-xs font-bold px-3 py-1 rounded-full shadow-md">
+                    <Zap className="h-3 w-3 fill-brand-500 text-brand-500" />
                     {plan.badge}
                   </span>
                 </div>
               )}
 
               {/* Plan name & price */}
-              <div className="mb-6">
+              <div className="relative mb-6">
                 <h3
                   className={`text-lg font-bold mb-1 ${isHighlight ? "text-white" : "text-foreground"}`}
                 >
                   {plan.name}
                 </h3>
                 <p
-                  className={`text-sm mb-4 ${isHighlight ? "text-brand-100" : "text-muted-foreground"}`}
+                  className={`text-sm mb-5 ${isHighlight ? "text-brand-50/90" : "text-muted-foreground"}`}
                 >
                   {plan.description}
                 </p>
                 <div className="flex items-end gap-1">
                   <span
-                    className={`text-4xl font-black ${isHighlight ? "text-white" : "text-foreground"}`}
+                    className={`text-5xl font-black tracking-tight ${isHighlight ? "text-white" : "text-foreground"}`}
                   >
-                    {/* ${isFree ? 0 : displayPrice.toFixed(2).replace(/\.00$/, "")} */}
                     ${isFree ? 0 : displayPrice.toFixed(2)}
                   </span>
                   <span
-                    className={`text-sm mb-1.5 ${isHighlight ? "text-brand-100" : "text-muted-foreground"}`}
+                    className={`text-sm mb-2 ${isHighlight ? "text-brand-50/90" : "text-muted-foreground"}`}
                   >
                     /month
                   </span>
                 </div>
                 {isYearly && !isFree && (
                   <p
-                    className={`text-xs mt-1 ${isHighlight ? "text-brand-100" : "text-brand-500"}`}
+                    className={`text-xs mt-1.5 ${isHighlight ? "text-brand-50/90" : "text-brand-600 dark:text-brand-400"}`}
                   >
                     Billed ${plan.yearlyPrice}/year
                   </p>
                 )}
               </div>
 
+              {/* Divider */}
+              <div
+                className={`h-px w-full mb-6 ${isHighlight ? "bg-white/20" : "bg-border"}`}
+              />
+
               {/* Features */}
-              <ul className="space-y-3 mb-8">
+              <ul className="space-y-3.5 mb-8 flex-1">
                 {plan.features.map((feature) => (
-                  <li key={feature} className="flex items-center gap-2.5">
-                    <CheckCircle2
-                      className={`h-4 w-4 shrink-0 ${isHighlight ? "text-brand-100" : "text-brand-500"}`}
-                    />
+                  <li key={feature} className="flex items-start gap-2.5">
                     <span
-                      className={`text-sm ${isHighlight ? "text-brand-50" : "text-foreground"}`}
+                      className={`mt-0.5 flex items-center justify-center w-5 h-5 rounded-full shrink-0 ${
+                        isHighlight ? "bg-white/20" : "bg-brand-500/10"
+                      }`}
+                    >
+                      <CheckCircle2
+                        className={`h-3.5 w-3.5 ${isHighlight ? "text-white" : "text-brand-600 dark:text-brand-400"}`}
+                      />
+                    </span>
+                    <span
+                      className={`text-sm leading-snug ${isHighlight ? "text-brand-50" : "text-foreground"}`}
                     >
                       {feature}
                     </span>
@@ -167,10 +182,10 @@ const CTAButton = ({
   isYearly,
   mode,
 }: CTAButtonProps) => {
-  const buttonClasses = `w-full rounded-xl ${
+  const buttonClasses = `w-full rounded-xl font-semibold transition-all duration-200 ${
     isHighlight
-      ? "bg-white text-brand-600 hover:bg-brand-50"
-      : "bg-brand-500 hover:bg-brand-600 text-white"
+      ? "bg-white text-brand-600 hover:bg-brand-50 shadow-md"
+      : "bg-primary text-primary-foreground hover:bg-brand-600"
   }`;
 
   // Landing — not signed in

@@ -20,6 +20,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { format, differenceInCalendarDays } from "date-fns";
+import { cn } from "@/lib/utils";
 import { LeaveStatus } from "@/types";
 import { Leave } from "@/types/leave";
 import LeaveRowActions from "@/components/dashboard/leave/LeaveRowActions";
@@ -98,20 +99,28 @@ const LeaveTable = ({
 
   return (
     <>
-      <div className="rounded-xl border border-border overflow-hidden">
+      <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
         <Table>
           <TableHeader>
-            <TableRow className="bg-muted/40 hover:bg-muted/40">
+            <TableRow className="bg-muted/50 hover:bg-muted/50">
               {showStaffColumn && (
-                <TableHead className="w-[220px] pl-6 font-medium">
+                <TableHead className="w-[220px] pl-6 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                   Staff
                 </TableHead>
               )}
-              <TableHead className="font-medium">Dates</TableHead>
-              <TableHead className="font-medium">Duration</TableHead>
-              <TableHead className="font-medium">Reason</TableHead>
-              <TableHead className="font-medium">Status</TableHead>
-              <TableHead className="font-medium w-10" />
+              <TableHead className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Dates
+              </TableHead>
+              <TableHead className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Duration
+              </TableHead>
+              <TableHead className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Reason
+              </TableHead>
+              <TableHead className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Status
+              </TableHead>
+              <TableHead className="w-10" />
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -123,44 +132,47 @@ const LeaveTable = ({
               return (
                 <TableRow
                   key={leave.id}
-                  className="hover:bg-muted/40 transition-colors border-b border-border last:border-0"
+                  className="border-b border-border transition-colors last:border-0 hover:bg-muted/30"
                 >
                   {showStaffColumn && (
-                    <TableCell className="px-6 py-3">
+                    <TableCell className="px-6 py-3.5">
                       <p className="text-sm font-medium text-foreground">
                         {staffName}
                       </p>
                     </TableCell>
                   )}
 
-                  <TableCell className="py-3">
+                  <TableCell className="py-3.5">
                     <p className="text-sm text-foreground">
                       {formatDateRange(leave.startDate, leave.endDate)}
                     </p>
                   </TableCell>
 
-                  <TableCell className="py-3">
+                  <TableCell className="py-3.5">
                     <p className="text-sm text-muted-foreground">
                       {formatDuration(leave.startDate, leave.endDate)}
                     </p>
                   </TableCell>
 
-                  <TableCell className="py-3 max-w-[280px]">
-                    <p className="text-sm text-muted-foreground truncate">
+                  <TableCell className="max-w-[280px] py-3.5">
+                    <p className="truncate text-sm text-muted-foreground">
                       {leave.reason || "—"}
                     </p>
                   </TableCell>
 
-                  <TableCell className="py-3">
+                  <TableCell className="py-3.5">
                     <Badge
-                      className={`text-xs flex items-center gap-1 w-fit ${status.className}`}
+                      className={cn(
+                        "flex w-fit items-center gap-1 text-xs",
+                        status.className,
+                      )}
                     >
                       <StatusIcon className="h-3 w-3" />
                       {status.label}
                     </Badge>
                   </TableCell>
 
-                  <TableCell className="py-3 pr-4">
+                  <TableCell className="py-3.5 pr-4">
                     <LeaveRowActions
                       leave={leave}
                       isAdmin={isAdmin}
@@ -176,7 +188,7 @@ const LeaveTable = ({
 
       {/* Pagination — only show if more than one page */}
       {totalPages > 1 && (
-        <div className="flex items-center justify-between mt-4 px-1">
+        <div className="mt-4 flex items-center justify-between px-1">
           <p className="text-xs text-muted-foreground">
             Page {safePage} of {totalPages} · {leaves.length} total
           </p>
@@ -184,22 +196,22 @@ const LeaveTable = ({
             <Button
               variant="outline"
               size="sm"
-              className="h-8 rounded-lg"
+              className="h-9 rounded-lg"
               disabled={safePage === 1}
               onClick={() => setPage((p) => Math.max(1, p - 1))}
             >
-              <ChevronLeft className="h-4 w-4 mr-1" />
+              <ChevronLeft className="mr-1 h-4 w-4" />
               Previous
             </Button>
             <Button
               variant="outline"
               size="sm"
-              className="h-8 rounded-lg"
+              className="h-9 rounded-lg"
               disabled={safePage === totalPages}
               onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
             >
               Next
-              <ChevronRight className="h-4 w-4 ml-1" />
+              <ChevronRight className="ml-1 h-4 w-4" />
             </Button>
           </div>
         </div>

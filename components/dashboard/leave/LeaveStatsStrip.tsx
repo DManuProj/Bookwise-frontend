@@ -11,38 +11,50 @@ const LeaveStatsStrip = ({ leaves }: { leaves: Leave[] }) => {
   };
 
   const rows = [
-    { label: "Total", value: stats.total, color: "text-foreground" },
+    {
+      label: "Total",
+      value: stats.total,
+      text: "text-foreground",
+      dot: "bg-foreground/60",
+    },
     {
       label: "Pending",
       value: stats.pending,
-      color: "text-amber-600 dark:text-amber-400",
+      text: "text-amber-600 dark:text-amber-400",
+      dot: "bg-amber-500",
     },
     {
       label: "Approved",
       value: stats.approved,
-      color: "text-brand-600 dark:text-brand-400",
+      text: "text-brand-600 dark:text-brand-400",
+      dot: "bg-brand-500",
     },
     {
       label: "Rejected",
       value: stats.rejected,
-      color: "text-red-600 dark:text-red-400",
+      text: "text-red-600 dark:text-red-400",
+      dot: "bg-red-500",
     },
     {
       label: "Cancelled",
       value: stats.cancelled,
-      color: "text-slate-500 dark:text-slate-400",
+      text: "text-slate-500 dark:text-slate-400",
+      dot: "bg-slate-400",
     },
   ];
 
   return (
-    <div className="flex items-center gap-1 flex-wrap">
-      {rows.map((stat, i) => (
-        <div key={stat.label} className="flex items-center gap-1">
-          {i > 0 && <span className="text-border text-sm mx-1">·</span>}
-          <span className={cn("text-sm font-semibold", stat.color)}>
+    <div className="flex flex-wrap items-center gap-2">
+      {rows.map((stat) => (
+        <div
+          key={stat.label}
+          className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1.5"
+        >
+          <span className={cn("h-1.5 w-1.5 rounded-full", stat.dot)} />
+          <span className={cn("text-sm font-bold tabular-nums", stat.text)}>
             {stat.value}
           </span>
-          <span className="text-sm text-muted-foreground">{stat.label}</span>
+          <span className="text-xs text-muted-foreground">{stat.label}</span>
         </div>
       ))}
     </div>

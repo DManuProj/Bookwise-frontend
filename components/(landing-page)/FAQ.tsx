@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Container from "@/components/shared/Container";
-import { Plus, Minus } from "lucide-react";
+import { Plus, MessageCircle } from "lucide-react";
 
 const faqs = [
   {
@@ -48,7 +48,7 @@ const faqs = [
 ];
 
 const FAQ = () => {
-  const [openIndex, setOpenIndex] = useState<number | null>(null);
+  const [openIndex, setOpenIndex] = useState<number | null>(0);
   const toggle = (i: number) => setOpenIndex(openIndex === i ? null : i);
 
   return (
@@ -61,7 +61,7 @@ const FAQ = () => {
               FAQ
             </span>
           </div>
-          <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
+          <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-foreground mb-4">
             Frequently asked questions
           </h2>
           <p className="text-lg text-muted-foreground">
@@ -71,46 +71,84 @@ const FAQ = () => {
 
         {/* Accordion */}
         <div className="max-w-3xl mx-auto space-y-3">
-          {faqs.map(({ question, answer }, i) => (
-            <div
-              key={i}
-              className={`card-surface rounded-xl overflow-hidden transition-all duration-200 ${
-                openIndex === i
-                  ? "border-brand-500/40 shadow-sm shadow-brand-500/10"
-                  : "card-hover"
-              }`}
-            >
-              <button
-                onClick={() => toggle(i)}
-                className="w-full flex items-center justify-between px-6 py-4 text-left gap-4 hover:bg-muted/40 transition-colors"
+          {faqs.map(({ question, answer }, i) => {
+            const isOpen = openIndex === i;
+            return (
+              <div
+                key={i}
+                className={`rounded-xl border transition-all duration-200 ${
+                  isOpen
+                    ? "bg-card border-brand-500/40 shadow-md shadow-brand-500/10"
+                    : "card-surface hover:border-brand-500/30 hover:shadow-sm"
+                }`}
               >
-                <span className="text-sm font-semibold text-foreground">
-                  {question}
-                </span>
-                <span
-                  className={`shrink-0 w-6 h-6 rounded-full flex items-center justify-center transition-colors ${
-                    openIndex === i
-                      ? "bg-brand-500 text-white"
-                      : "bg-muted text-muted-foreground"
+                <button
+                  onClick={() => toggle(i)}
+                  aria-expanded={isOpen}
+                  className="w-full flex items-center justify-between px-6 py-5 text-left gap-4"
+                >
+                  <span
+                    className={`text-[15px] font-semibold transition-colors ${
+                      isOpen
+                        ? "text-brand-700 dark:text-brand-300"
+                        : "text-foreground"
+                    }`}
+                  >
+                    {question}
+                  </span>
+                  <span
+                    className={`shrink-0 w-7 h-7 rounded-full flex items-center justify-center transition-all duration-300 ${
+                      isOpen
+                        ? "bg-brand-500 text-white rotate-45 shadow-sm shadow-brand-500/40"
+                        : "bg-muted text-muted-foreground"
+                    }`}
+                  >
+                    <Plus className="h-3.5 w-3.5" />
+                  </span>
+                </button>
+
+                {/* Smooth height-animated panel */}
+                <div
+                  className={`grid transition-all duration-300 ease-out ${
+                    isOpen
+                      ? "grid-rows-[1fr] opacity-100"
+                      : "grid-rows-[0fr] opacity-0"
                   }`}
                 >
-                  {openIndex === i ? (
-                    <Minus className="h-3 w-3" />
-                  ) : (
-                    <Plus className="h-3 w-3" />
-                  )}
-                </span>
-              </button>
-
-              {openIndex === i && (
-                <div className="px-6 pb-5 border-t border-border pt-4">
-                  <p className="text-sm text-muted-foreground leading-relaxed">
-                    {answer}
-                  </p>
+                  <div className="overflow-hidden">
+                    <p className="px-6 pb-5 text-sm text-muted-foreground leading-relaxed">
+                      {answer}
+                    </p>
+                  </div>
                 </div>
-              )}
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Still have questions */}
+        <div className="max-w-3xl mx-auto mt-10">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 rounded-2xl border border-brand-500/20 bg-brand-500/5 px-7 py-6">
+            <div className="flex items-center gap-4 text-center sm:text-left">
+              <div className="hidden sm:flex items-center justify-center w-11 h-11 rounded-xl bg-brand-500/10 shrink-0">
+                <MessageCircle className="h-5 w-5 text-brand-600 dark:text-brand-400" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-foreground">
+                  Still have questions?
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  Our team usually replies within a few hours.
+                </p>
+              </div>
             </div>
-          ))}
+            <a
+              href="mailto:support@bookwise.ai"
+              className="inline-flex items-center justify-center px-5 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:bg-brand-600 transition-colors shrink-0"
+            >
+              Contact supports
+            </a>
+          </div>
         </div>
       </Container>
     </section>

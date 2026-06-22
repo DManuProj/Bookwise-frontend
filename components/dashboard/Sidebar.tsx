@@ -1,10 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { useUser, useClerk } from "@clerk/nextjs";
-import { useTheme } from "next-themes";
 import {
   CalendarDays,
   CalendarOff,
@@ -62,13 +60,17 @@ function SidebarNav() {
               tooltip={item.label}
               isActive={isActive}
               className={cn(
-                "h-10 rounded-lg mt-2",
+                "h-10 rounded-lg mt-2 relative",
                 isActive
-                  ? "bg-brand-500/15 text-brand-600 hover:bg-brand-500/20 hover:text-brand-700 dark:text-brand-400"
+                  ? "bg-brand-500/15  text-brand-600 hover:bg-brand-500/20 hover:text-brand-700 dark:text-brand-400"
                   : "text-muted-foreground hover:bg-muted hover:text-foreground",
               )}
             >
               <Link href={item.href}>
+                {/* Active left bar */}
+                {isActive && (
+                  <span className="absolute left-0 top-1/2 h-full w-1 -translate-y-1/2 rounded-r-full bg-brand-500 group-data-[collapsible=icon]:hidden" />
+                )}
                 <Icon
                   className={cn(
                     "h-4 w-4 shrink-0",
@@ -98,7 +100,7 @@ function SidebarCollapseButton() {
     <button
       type="button"
       onClick={toggleSidebar}
-      className="absolute overflow-hidden -right-3.5 top-[18px] z-[9999] hidden h-7 w-7 items-center justify-center rounded-full border border-border bg-background text-muted-foreground shadow-sm transition-all duration-150 hover:bg-brand-500 hover:text-white hover:border-brand-500 md:flex"
+      className="absolute overflow-hidden -right-3.5 top-4.5 z-9999 hidden h-7 w-7 items-center justify-center rounded-full border border-border bg-background text-muted-foreground shadow-sm transition-all duration-150 hover:bg-brand-500 hover:text-white hover:border-brand-500 md:flex"
       aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
     >
       {isCollapsed ? (
@@ -114,9 +116,6 @@ const Sidebar = () => {
   const { user } = useUser();
   const { signOut } = useClerk();
   const { state } = useSidebar();
-  //   const [mounted, setMounted] = useState(false);
-
-  //   useEffect(() => setMounted(true), []);
 
   const isCollapsed = state === "collapsed";
 
@@ -139,8 +138,8 @@ const Sidebar = () => {
         <SidebarCollapseButton />
       </div>
 
-      <SidebarHeader className="h-16 border-b grid items-center overflow-hidden ">
-        <div className=" ">
+      <SidebarHeader className="h-16 border-b grid items-center overflow-hidden">
+        <div>
           <Logo />
         </div>
       </SidebarHeader>

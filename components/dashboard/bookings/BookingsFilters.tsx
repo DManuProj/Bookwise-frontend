@@ -54,16 +54,16 @@ const BookingsFilters = ({
   })();
 
   return (
-    <div className="flex flex-col sm:flex-row gap-3">
+    <div className="flex flex-col gap-2.5 rounded-2xl card-surface p-2.5 shadow-sm sm:flex-row sm:items-center">
       {/* Search */}
       <div className="relative flex-1">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <Input
           disabled={disabled}
           placeholder="Search customer or service..."
           value={filters.search}
           onChange={(e) => set("search", e.target.value)}
-          className="pl-9 h-9"
+          className="h-10 rounded-xl border-transparent bg-muted/50 pl-9 focus-visible:border-brand-500/40 focus-visible:bg-card"
         />
       </div>
 
@@ -73,7 +73,7 @@ const BookingsFilters = ({
         value={filters.status}
         onValueChange={(v) => set("status", v)}
       >
-        <SelectTrigger className="h-9 w-full sm:w-36">
+        <SelectTrigger className="h-10 w-full rounded-xl sm:w-36">
           <SelectValue placeholder="All statuses" />
         </SelectTrigger>
         <SelectContent>
@@ -93,13 +93,13 @@ const BookingsFilters = ({
             type="button"
             disabled={disabled || filters.stale}
             className={cn(
-              "flex h-9 w-full sm:w-56 items-center gap-2 rounded-md border px-3 text-sm text-left transition-colors",
+              "flex h-10 w-full items-center gap-2 rounded-xl border px-3 text-left text-sm transition-colors sm:w-56",
               "border-input bg-transparent",
-              "hover:border-gray-400 dark:hover:border-teal-400",
-              "disabled:opacity-50 disabled:cursor-not-allowed",
+              "hover:border-brand-500/40 hover:bg-brand-500/[0.04]",
+              "disabled:cursor-not-allowed disabled:opacity-50",
             )}
           >
-            <CalendarIcon className="h-4 w-4 text-muted-foreground shrink-0" />
+            <CalendarIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
             <span
               className={cn(
                 "truncate",
@@ -140,7 +140,7 @@ const BookingsFilters = ({
               initialFocus
             />
           </div>
-          <div className="border-t p-2 flex justify-end">
+          <div className="flex justify-end border-t p-2">
             <Button
               variant="ghost"
               size="sm"
@@ -161,7 +161,7 @@ const BookingsFilters = ({
         value={filters.staff}
         onValueChange={(v) => set("staff", v)}
       >
-        <SelectTrigger className="h-9 w-full sm:w-36">
+        <SelectTrigger className="h-10 w-full rounded-xl sm:w-36">
           <SelectValue placeholder="All staff" />
         </SelectTrigger>
         <SelectContent>
@@ -181,9 +181,9 @@ const BookingsFilters = ({
           variant="ghost"
           size="sm"
           onClick={onClear}
-          className="h-9 px-3 text-muted-foreground hover:text-foreground shrink-0"
+          className="h-10 shrink-0 rounded-xl px-3 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
         >
-          <X className="h-4 w-4 mr-1" />
+          <X className="mr-1 h-4 w-4" />
           Clear
         </Button>
       )}

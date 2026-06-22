@@ -10,7 +10,6 @@ import {
   useCreatePortalSession,
   useSubscribe,
 } from "@/hooks/api/useBilling";
-import { showErrorToast } from "@/lib/errors";
 import { getPlanByTier } from "@/lib/plans";
 import type { Plan } from "@/lib/plans";
 import type { PlanTier } from "@/types/enums";
@@ -34,7 +33,6 @@ const SettingsBilling = () => {
   // Click handler for paid plan buttons in PricingCards
   const handleSelectPaid = async (plan: Plan, period: "monthly" | "yearly") => {
     if (!status) return;
-    console.log("status of the sub", status);
 
     // Already has a subscription → plan SWITCH (no card capture needed)
     // Backend updates existing subscription, no clientSecret returned
@@ -80,7 +78,7 @@ const SettingsBilling = () => {
   if (!status) {
     return (
       <div className="p-6 lg:p-8">
-        <p className="text-center text-muted-foreground py-24">
+        <p className="py-24 text-center text-muted-foreground">
           Unable to load billing information. Please refresh.
         </p>
       </div>
@@ -94,30 +92,33 @@ const SettingsBilling = () => {
       {/* Back link */}
       <Link
         href="/dashboard/settings"
-        className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-6 transition-colors"
+        className="group mb-6 inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
       >
-        <ArrowLeft className="h-4 w-4" />
+        <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-0.5" />
         Back to settings
       </Link>
 
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-foreground mb-1">Billing</h1>
-        <p className="text-sm text-muted-foreground">
+        <h1 className="text-2xl font-bold tracking-tight text-foreground">
+          Billing
+        </h1>
+        <p className="mt-1 text-sm text-muted-foreground">
           Manage your subscription and payment method.
         </p>
       </div>
 
       {/* Current plan summary */}
-      <div className="max-w-5xl mx-auto mb-12">
-        <div className="rounded-2xl border bg-card p-6">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="mx-auto mb-12 max-w-5xl">
+        <div className="relative overflow-hidden rounded-2xl border border-brand-500/20 bg-card p-6 shadow-sm dark:border-brand-500/10">
+          <div className="pointer-events-none absolute -right-10 -top-12 h-36 w-36 rounded-full bg-brand-500/10 blur-3xl" />
+          <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">
+              <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-brand-700 dark:text-brand-300">
                 Current plan
               </p>
               <div className="flex items-baseline gap-2">
-                <h2 className="text-xl font-bold text-foreground">
+                <h2 className="text-xl font-bold tracking-tight text-foreground">
                   {currentPlan?.name ?? status.planTier}
                 </h2>
                 {currentPlan && currentPlan.monthlyPrice > 0 && (
@@ -131,30 +132,28 @@ const SettingsBilling = () => {
               </div>
             </div>
 
-            {status.hasSubscription &&
-              (console.log("status", status),
-              (
-                <Button
-                  variant="outline"
-                  onClick={handleManageSubscription}
-                  disabled={portalMutation.isPending}
-                  className="rounded-xl"
-                >
-                  {portalMutation.isPending ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <>
-                      Manage subscription
-                      <ExternalLink className="h-4 w-4 ml-2" />
-                    </>
-                  )}
-                </Button>
-              ))}
+            {status.hasSubscription && (
+              <Button
+                variant="outline"
+                onClick={handleManageSubscription}
+                disabled={portalMutation.isPending}
+                className="h-11 rounded-xl"
+              >
+                {portalMutation.isPending ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <>
+                    Manage subscription
+                    <ExternalLink className="ml-2 h-4 w-4" />
+                  </>
+                )}
+              </Button>
+            )}
           </div>
 
           {status.cancelAtPeriodEnd && status.currentPeriodEnd && (
-            <div className="mt-4 rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 flex items-start gap-2">
-              <AlertCircle className="h-4 w-4 text-amber-600 dark:text-amber-500 shrink-0 mt-0.5" />
+            <div className="relative mt-4 flex items-start gap-2 rounded-xl border border-amber-500/30 bg-amber-500/10 p-3">
+              <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600 dark:text-amber-500" />
               <p className="text-sm text-amber-700 dark:text-amber-400">
                 Your {currentPlan?.name} plan ends on{" "}
                 {new Date(status.currentPeriodEnd * 1000).toLocaleDateString(
@@ -169,7 +168,7 @@ const SettingsBilling = () => {
       </div>
 
       {/* Plan grid */}
-      <div className="max-w-5xl mx-auto">
+      <div className="mx-auto max-w-5xl">
         <PricingCards
           mode={{
             kind: "settings",

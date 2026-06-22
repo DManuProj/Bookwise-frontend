@@ -70,23 +70,25 @@ const ServicesPage = () => {
   };
 
   return (
-    <div className="p-6 lg:p-8 max-w-7xl mx-auto space-y-6">
+    <div className="mx-auto max-w-8xl space-y-6 p-6 lg:p-8">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-foreground mb-1">Services</h1>
-          <p className="text-sm text-muted-foreground">
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">
+            Services
+          </h1>
+          <p className="mt-1 text-sm text-muted-foreground">
             Manage what your business offers.
           </p>
         </div>
         {atCap ? (
           <div className="flex items-center gap-3">
-            <span className="text-xs text-muted-foreground">
+            <span className="rounded-full border border-border bg-card px-3 py-1.5 text-xs font-medium text-muted-foreground">
               {usage?.services.used} / {usage?.services.limit} services used
             </span>
             <Button
               asChild
-              className="bg-brand-500 hover:bg-brand-600 text-white h-11 rounded-lg shadow-sm shadow-brand-500/20"
+              className="h-11 rounded-xl bg-primary font-semibold text-primary-foreground shadow-lg shadow-brand-500/25 transition-all duration-200 hover:bg-brand-600 hover:-translate-y-0.5"
             >
               <Link href="/dashboard/settings/billing">
                 <Plus className="h-4 w-4" />
@@ -97,7 +99,7 @@ const ServicesPage = () => {
         ) : (
           <Button
             onClick={handleAdd}
-            className="bg-brand-500 hover:bg-brand-600 text-white h-11 rounded-lg shadow-sm shadow-brand-500/20"
+            className="h-11 rounded-xl bg-primary font-semibold text-primary-foreground shadow-lg shadow-brand-500/25 transition-all duration-200 hover:bg-brand-600 hover:-translate-y-0.5"
           >
             <Plus className="h-4 w-4" />
             Add New Service
@@ -118,7 +120,7 @@ const ServicesPage = () => {
       {isPending ? (
         <ServicesGridSkeleton />
       ) : services.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {services.map((service) => (
             <ServiceCard
               key={service.id}

@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, ChevronDown } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -56,21 +56,21 @@ export default function LeaveFilters({
     : "All staff";
 
   return (
-    <div className="flex flex-wrap items-center gap-2 mb-4">
+    <div className="mb-4 flex flex-wrap items-center gap-2">
       {/* Status filter */}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button
             variant="outline"
-            className="h-10 rounded-xl gap-2 font-normal"
+            className="h-10 gap-2 rounded-xl font-normal data-[state=open]:border-brand-500/40 data-[state=open]:bg-brand-500/[0.04]"
           >
             <span className="text-xs text-muted-foreground">Status:</span>
             <span className="text-sm font-medium">{currentStatusLabel}</span>
             <ChevronDown className="h-4 w-4 text-muted-foreground" />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="start" className="w-56">
-          <DropdownMenuLabel className="text-xs text-muted-foreground font-normal">
+        <DropdownMenuContent align="start" className="w-56 rounded-xl p-1.5">
+          <DropdownMenuLabel className="px-2 text-xs font-normal text-muted-foreground">
             Filter by status
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
@@ -79,6 +79,7 @@ export default function LeaveFilters({
               key={opt.value}
               checked={statusFilter === opt.value}
               onCheckedChange={() => onStatusChange(opt.value)}
+              className="cursor-pointer rounded-lg"
             >
               {opt.label}
             </DropdownMenuCheckboxItem>
@@ -92,21 +93,22 @@ export default function LeaveFilters({
           <DropdownMenuTrigger asChild>
             <Button
               variant="outline"
-              className="h-10 rounded-xl gap-2 font-normal"
+              className="h-10 gap-2 rounded-xl font-normal data-[state=open]:border-brand-500/40 data-[state=open]:bg-brand-500/[0.04]"
             >
               <span className="text-xs text-muted-foreground">Staff:</span>
               <span className="text-sm font-medium">{currentStaffLabel}</span>
               <ChevronDown className="h-4 w-4 text-muted-foreground" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="start" className="w-56">
-            <DropdownMenuLabel className="text-xs text-muted-foreground font-normal">
+          <DropdownMenuContent align="start" className="w-56 rounded-xl p-1.5">
+            <DropdownMenuLabel className="px-2 text-xs font-normal text-muted-foreground">
               Filter by staff
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuCheckboxItem
               checked={!filters.userId}
               onCheckedChange={() => onStaffChange(undefined)}
+              className="cursor-pointer rounded-lg"
             >
               All staff
             </DropdownMenuCheckboxItem>
@@ -119,6 +121,7 @@ export default function LeaveFilters({
                     filters.userId === member.id ? undefined : member.id,
                   )
                 }
+                className="cursor-pointer rounded-lg"
               >
                 {member.firstName} {member.lastName}
               </DropdownMenuCheckboxItem>

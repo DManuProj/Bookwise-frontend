@@ -62,30 +62,32 @@ const EditRoleModal = ({
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-sm w-full p-0 gap-0 overflow-hidden">
+      <DialogContent className="w-full max-w-sm gap-0 overflow-hidden rounded-2xl p-0">
         {/* Header */}
-        <DialogHeader className="px-6 pt-6 pb-4 border-b border-border">
-          <DialogTitle className="text-lg font-bold">Edit Role</DialogTitle>
+        <DialogHeader className="border-b border-border px-6 pb-4 pt-6">
+          <DialogTitle className="text-lg font-bold tracking-tight">
+            Edit Role
+          </DialogTitle>
           <DialogDescription className="text-sm text-muted-foreground">
             Change the role for this team member.
           </DialogDescription>
         </DialogHeader>
 
         {/* Content */}
-        <div className="px-6 py-5 space-y-4">
+        <div className="space-y-4 px-6 py-5">
           {/* Member info */}
-          <div className="flex items-center gap-3 p-3 rounded-xl bg-muted/40 border border-border">
-            <Avatar className="h-9 w-9 shrink-0">
+          <div className="flex items-center gap-3 rounded-xl border border-border bg-muted/40 p-3">
+            <Avatar className="h-10 w-10 shrink-0 ring-2 ring-brand-500/15">
               <AvatarImage src={member.photoUrl ?? undefined} alt={fullName} />
-              <AvatarFallback className="bg-brand-500/10 text-brand-600 dark:text-brand-400 text-sm font-semibold">
+              <AvatarFallback className="bg-gradient-to-br from-brand-400 to-brand-600 text-sm font-semibold text-white">
                 {initials || "U"}
               </AvatarFallback>
             </Avatar>
             <div className="min-w-0">
-              <p className="text-sm font-medium text-foreground truncate">
+              <p className="truncate text-sm font-medium text-foreground">
                 {fullName}
               </p>
-              <p className="text-xs text-muted-foreground truncate">
+              <p className="truncate text-xs text-muted-foreground">
                 {member.email}
               </p>
             </div>
@@ -98,8 +100,8 @@ const EditRoleModal = ({
               value={role}
               onValueChange={(val: "ADMIN" | "MEMBER") => setRole(val)}
             >
-              <SelectTrigger>
-                <SelectValue />
+              <SelectTrigger className="h-11 rounded-xl">
+                <SelectValue className="flex-1" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="ADMIN">
@@ -130,11 +132,11 @@ const EditRoleModal = ({
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-4 border-t border-border flex gap-3">
+        <div className="flex gap-3 border-t border-border px-6 py-4">
           <Button
             type="button"
             variant="outline"
-            className="flex-1 rounded-xl"
+            className="h-11 flex-1 rounded-xl"
             onClick={onClose}
             disabled={isSubmitting}
           >
@@ -144,7 +146,7 @@ const EditRoleModal = ({
             type="button"
             onClick={handleSave}
             disabled={isSubmitting}
-            className="flex-1 bg-brand-500 hover:bg-brand-600 text-white rounded-xl shadow-md shadow-brand-500/20 disabled:opacity-70"
+            className="h-11 flex-1 rounded-xl bg-primary font-semibold text-primary-foreground shadow-lg shadow-brand-500/25 transition-all duration-200 hover:bg-brand-600 disabled:opacity-70"
           >
             {isSubmitting ? (
               <>
